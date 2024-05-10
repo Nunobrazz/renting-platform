@@ -1,0 +1,93 @@
+module Time.Clock where 
+
+
+import DA.Date (addDays)
+import Interface.Types (Parties)
+
+
+
+-- | Event signalling the update of a `DateClock`. It can trigger the execution of lifecycle rules
+-- for some instruments.
+template DateClockUpdateEvent
+  with
+    provider : Party
+      -- ^ Provider of the event.
+    eventDate : Date
+      -- ^ The event time.
+    --id : Id
+      -- ^ Event identifier.
+    observers : Parties
+      -- ^ The clock's observers.
+  where
+    signatory provider
+    observer observers
+
+
+
+-- | A `DateClock` is a template used to keep track of the current date.
+-- It implements the `Time` rule interface to be able to advance and rewind business time. It also
+-- implements the `TimeObservable` interface. Specifically, each date `D` is mapped to
+-- `D 00:00:00 UTC`. If your use-case involves working across multiple time zones, you may need to
+--  define multiple `DateClock` templates with specific time conversions.
+template DateClock
+  with
+    provider : Party
+      -- ^ The clock's provider.
+    clockDate : Date
+      -- ^ The clock's date.
+    -- id : Id
+      -- ^ The clock's identifier if we use different timezones 
+    description : Text
+      -- ^ The clock's description.
+    observers : Parties
+      -- ^ Observers.
+  where
+    signatory provider
+    observer observers
+
+
+    nonconsuming choice Advance : (ContractId DateClock, ContractId DateClockUpdateEvent)
+        -- ^ Advance time to its next state.
+        with
+          --eventId : Id
+            -- ^ Event identifier.
+          days : Int
+            -- ^ Days to advance
+        controller provider
+        do
+          moveClock this self days
+
+
+    nonconsuming choice Rewind : (ContractId DateClock, ContractId DateClockUpdateEvent)
+      -- ^ Rewind time to its previous state.
+      with
+        --eventId : Id
+          -- ^ Event identifier.
+        days : Int
+            -- ^ Days to rewind
+      controller provider
+      do
+        moveClock this self (-days)
+
+
+
+-- | HIDE
+moveClock : DateClock -> ContractId DateClock -> Int -> Update (ContractId DateClock, ContractId DateClockUpdateEvent)
+
+moveClock this@DateClock {clockDate; provider; observers} self offset = do
+  let
+    newDate = addDays clockDate offset
+    clock = this with clockDate=newDate
+
+  -- atomic
+  archive self
+  clockCid <- create clock
+  eventCid <- create DateClockUpdateEvent with
+    provider
+    observers
+    eventDate = clock.clockDate
+  -- atomic
+
+  pure (clockCid, eventCid)
+
+

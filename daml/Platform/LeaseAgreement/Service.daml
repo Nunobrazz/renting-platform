@@ -1,0 +1,113 @@
+module Platform.LeaseAgreement.Service where
+
+import qualified DA.Set as S
+import Interface.Types as Types (Breakdown, House, LeaseTerms, AssessmentDetails, LAkey(..), MIkey) 
+import Platform.LeaseAgreement.ModelLA qualified as LAmodel (LeaseAgreement(..))
+import Platform.LeaseAgreement.ModelMI qualified as MImodel (MI(..), Assessment(..), Sign(..))
+
+
+
+template Service
+  with
+    operator : Party
+    host : Party       -- Who will put the house for listing (must be host)
+    tenant : Party     -- Who is renting the house
+    laKey : LAkey
+  where
+    signatory operator, host, tenant    -- Market operator and user will need to sign this contract
+    
+    key (host, tenant) : (Party, Party)  
+    maintainer key._1, key._2
+   
+
+
+
+
+
+
+
+
+
+---- BEGIN ---- MAINTENANCE ISSUES
+
+  
+    nonconsuming choice CreateMI : ContractId MImodel.MI
+      with 
+        reporter : Party
+        breakdown : Breakdown
+      controller reporter
+      do
+        assertMsg ("Creating the MI the reporter is neither tenant nor host.") (reporter == tenant || reporter == host)
+
+        -- Get number of arbitrators
+        (_, LAmodel.LeaseAgreement{leaseTerms, house}) <- fetchByKey @LAmodel.LeaseAgreement laKey 
+        let nArbitrators = leaseTerms.nArbitrators
+
+
+        if reporter == tenant then 
+          create MImodel.MI with operator; reporter; counterpart=host; arbitrators = S.empty; nArbitrators; house; breakdown; assessment=None
+        else 
+          create MImodel.MI with operator; reporter; counterpart=tenant; arbitrators = S.empty; nArbitrators; house; breakdown; assessment=None
+
+
+
+    nonconsuming choice SubmitAssessment : ContractId MImodel.Assessment
+      with 
+        submitter : Party
+        assessmentDetails : AssessmentDetails
+        miKey : MIkey
+      controller submitter
+      do
+        create MImodel.Assessment with assessmentDetails; approvers = S.fromList [tenant, host]; miKey; alreadySigned = S.fromList [submitter]
+    
+
+    nonconsuming choice SignAssessment : ContractId MImodel.Assessment
+      with 
+        signer : Party 
+        assessmentCid : ContractId MImodel.Assessment
+      controller signer
+      do
+        exercise assessmentCid MImodel.Sign with signer
+
+
+    
+
+---- END ---- MAINTENANCE ISSUES
+
+template Request
+  with
+    operator : Party
+    proposer : Party
+    house : House
+    leaseTerms : LeaseTerms
+  where
+    signatory proposer, house.host
+    observer operator
+
+    choice Withdraw : ()
+      controller proposer      -- proposer can Withdraw
+      do pure ()
+
+    choice Reject : ()
+      controller operator      -- operator rejects
+      do pure ()
+
+    choice Approve : ContractId Service
+      with 
+        --laBuilderCid : ContractId Builder.LeaseAgreement
+        lifecycler : Party
+      controller operator      -- operator approves
+      do
+        -- build lease agreement  not completed
+        create LAmodel.LeaseAgreement with operator;lifecycler; tenant=proposer; house; leaseTerms;paymentsToProcess=leaseTerms.paymentDates
+        create Service with operator; tenant=proposer; host=house.host; laKey = LAkey with tenant=proposer;house
+
+
+
+
+
+
+
+
+
+

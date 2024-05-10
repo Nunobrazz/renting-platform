@@ -1,0 +1,15 @@
+module Test.Random where
+import Daml.Script
+
+
+test = do
+  alice <- allocateParty "Alice"
+  
+  let payments = [1, 2, 3, 4, 5, 6]
+      newPayments = filter (> 3) payments
+      payments = newPayments
+
+  debug payments
+
+  pure()
+  

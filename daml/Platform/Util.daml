@@ -1,0 +1,9 @@
+module Platform.Util where
+
+-- | Fetches a contract, archives it and returns its value.
+fetchAndArchive : (HasArchive a, HasFetch a) => ContractId a -> Update a
+fetchAndArchive cid = do
+  c <- fetch cid
+  archive cid
+  return c
+

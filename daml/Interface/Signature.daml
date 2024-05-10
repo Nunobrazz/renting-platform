@@ -1,0 +1,32 @@
+module Interface.Signature where
+
+
+data SignatureView = SignatureView
+  with
+    partiesToSign : [Party]
+    alreadySigned : [Party]
+      deriving (Eq, Ord, Show)
+
+
+-- the interface for things that must be signed
+interface ISignature where
+  
+  viewtype SignatureView
+
+  -- Creates a new contract with a new party in alreadySined
+  addSigner : Party -> ISignature
+
+  -- a choice that can be exercised on ContractId ILoanable
+  -- (similar to OOP base class method, calling abstract methods)
+  choice Sign : ContractId ISignature with
+      signer : Party
+    controller signer
+    do
+      -- Check the controller is in the toSign list, and if they are, sign the Pending contract
+      assert (signer `elem` toSign (view this))
+      create $ addSigner this signer
+
+
+-- | The parties who need to sign are the finalContract signatories with alreadySigned filtered out
+toSign : SignatureView -> [Party]
+toSign SignatureView { alreadySigned, partiesToSign} = filter (`notElem` alreadySigned) partiesToSign

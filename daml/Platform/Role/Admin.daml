@@ -1,0 +1,86 @@
+module Platform.Role.Admin where
+
+--import Listing.Service qualified as Listing (Offer(..), Service(..), Terminate(..), Request, Approve(..))
+
+
+
+-- The admin role manages the Listing Service and the Proposing Service
+template Role
+  with
+    admin : Party
+    operator : Party
+  where
+    signatory operator
+    observer admin
+    
+    key (operator, admin) : (Party, Party)
+    maintainer key._1 
+
+
+    -- Begining of Listing Service choices
+{--    nonconsuming choice OfferListingService : ContractId Listing.Offer
+      with
+        host : Party
+      controller admin
+      do
+        create Listing.Offer with ..
+
+    nonconsuming choice ApproveListingServiceRequest : ContractId Listing.Service
+      with
+        listingRequestCid : ContractId Listing.Request
+        host : Party
+      controller admin
+      do
+        exercise listingRequestCid Listing.Approve 
+
+
+
+
+    nonconsuming choice TerminateListingService : ()
+      with
+        host : Party
+      controller admin
+      do
+        exerciseByKey @Listing.Service (admin, host) Listing.Terminate with actor = admin
+    -- End of Listing Service choices
+
+
+--}
+
+template Offer
+  with
+    operator : Party
+    admin : Party
+  where
+    signatory operator
+    observer admin
+
+    choice Accept : ContractId Role
+      controller admin
+      do
+        create Role with ..
+
+    choice Decline : ()
+      controller admin
+      do
+        return ()
+
+
+
+template Request
+  with
+    admin : Party
+    operator : Party
+  where
+    signatory admin
+    observer operator
+
+    choice Approve : ContractId Role
+      controller operator
+      do
+        create Role with ..
+
+    choice Reject : ()
+      controller operator
+      do
+        return ()

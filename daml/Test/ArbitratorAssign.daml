@@ -1,0 +1,108 @@
+module Test.ArbitratorAssign where
+
+import Daml.Script
+import DA.Date
+import qualified DA.Set as S
+
+import Test.LAcreation 
+import Platform.Role.Operator
+import Interface.Types as Types (LAkey(..), MIkey(..), Breakdown(..), AssessmentDetails(..), Responsability(..))
+import Platform.LeaseAgreement.ArbitratorsService qualified as Arbitrators (FinalizeVotation(..), SubmitVote(..), CreateVotation(..), InviteArbitrators(..), Request(..), AcceptMI(..), AssignArbitrators(..))
+import Platform.LeaseAgreement.Service qualified as LA (CreateMI(..))
+
+assignment = do
+    
+  (parties, contracts, house, leaseTerms) <- laCreation
+
+  arbitrator1 <- allocateParty "Arbitrator1"
+  arbitrator2 <- allocateParty "Arbitrator2"
+  arbitrator3 <- allocateParty "Arbitrator3"
+
+
+  let alice = parties.alice            
+      operator = parties.operator      
+      bob = parties.bob                
+
+      
+      operatorRoleCid = contracts.operatorRoleCid
+      adminRoleCid = contracts.adminRoleCid
+      laServiceCid = contracts.laServiceCid
+
+
+      invited = S.fromList [arbitrator1, arbitrator2, arbitrator3] 
+      breakdown = Breakdown with startingDate = date 2001 Jan 19; description = "Broken chair"
+      laKey = LAkey with tenant = bob; house 
+      miKey = MIkey with reporter=bob; house; breakdown
+      assessment = AssessmentDetails with responsability = (Responsability with  reporterResp = 10; counterpartResp=90); cost=Some 50; assessmentDate =  date 2001 Jan 25; reparationDate = Some (date 2001 Jan 30)
+      vote1 = Responsability with reporterResp = 30; counterpartResp=70
+      vote2 = Responsability with reporterResp = 10; counterpartResp=90
+  
+  arbitratorsServiceCid <- submit operator do
+    exerciseCmd operatorRoleCid CreateArbitratorsService 
+
+-- Arbitrators 1 and 2 ask access to the arbitrators service
+  arbitrator1ReqCid <- submit arbitrator1 do
+    createCmd Arbitrators.Request with operator; arbitrator=arbitrator1
+
+  arbitrator2ReqCid <- submit arbitrator2 do
+    createCmd Arbitrators.Request with operator; arbitrator=arbitrator2
+ 
+  arbitrator3ReqCid <- submit arbitrator3 do
+    createCmd Arbitrators.Request with operator; arbitrator=arbitrator3
+
+
+-- operator grants access to arbitrators 1 and 2
+  arbitratorsServiceCid <- submit operator do
+    exerciseCmd operatorRoleCid ApproveArbitratorService with serviceReqCid = arbitrator1ReqCid; serviceCid=arbitratorsServiceCid
+  
+  arbitratorsServiceCid <- submit operator do
+    exerciseCmd operatorRoleCid ApproveArbitratorService with serviceReqCid = arbitrator2ReqCid; serviceCid=arbitratorsServiceCid
+
+  arbitratorsServiceCid <- submit operator do
+    exerciseCmd operatorRoleCid ApproveArbitratorService with serviceReqCid = arbitrator3ReqCid; serviceCid=arbitratorsServiceCid
+
+
+
+
+
+  -- Operator creates MI 
+  miCid <- submit bob do 
+    exerciseCmd laServiceCid LA.CreateMI with reporter=bob; breakdown
+
+  --get the service
+
+  inviteArbitratorsCid <- submit operator do 
+    exerciseCmd arbitratorsServiceCid Arbitrators.InviteArbitrators with miKey
+
+
+  inviteArbitratorsCid <- submit arbitrator1 do 
+    exerciseCmd arbitratorsServiceCid Arbitrators.AcceptMI with inviteArbitratorsCid; arbitrator=arbitrator1
+
+
+  inviteArbitratorsCid <- submit arbitrator2 do 
+    exerciseCmd arbitratorsServiceCid Arbitrators.AcceptMI with inviteArbitratorsCid;arbitrator=arbitrator2
+  
+  
+  submitMustFail arbitrator3 do 
+    exerciseCmd arbitratorsServiceCid Arbitrators.AcceptMI with inviteArbitratorsCid; arbitrator=arbitrator3
+
+  inviteArbitratorsCid <- submit operator do 
+    exerciseCmd arbitratorsServiceCid Arbitrators.AssignArbitrators with inviteArbitratorsCid
+
+  votationCid <- submit arbitrator1 do 
+    exerciseCmd arbitratorsServiceCid Arbitrators.CreateVotation with creator=arbitrator1; description="The chair was already broker"; miKey; assessment
+
+  submitMustFail arbitrator3 do
+    exerciseCmd arbitratorsServiceCid Arbitrators.SubmitVote with voter=arbitrator3; votationCid; vote=vote1
+  
+  votationCid <- submit arbitrator2 do
+    exerciseCmd arbitratorsServiceCid Arbitrators.SubmitVote with voter=arbitrator2; votationCid; vote=vote1
+  
+  miCid <- submit arbitrator2 do
+    exerciseCmd arbitratorsServiceCid Arbitrators.FinalizeVotation with finalizer=arbitrator2; votationCid
+
+  --}
+
+  pure()
+
+

@@ -1,0 +1,76 @@
+module Platform.Role.Operator where
+
+import DA.Set qualified as S
+import Platform.Proposal.Service qualified as Proposal (Request, Approve(..), Service)
+import Platform.LeaseAgreement.Service as LeaseAgreement (Request, Approve(..), Service)
+import Platform.LeaseAgreement.ArbitratorsService qualified as Arbitrators 
+
+
+-- The operator role is the one that distributes the roles and aproves some stuff 
+
+template Role
+  with
+    operator : Party
+  where
+    signatory operator
+
+    key operator : Party
+    maintainer key
+
+---- BEGIN ---- ARBITRATORS
+
+    nonconsuming choice CreateArbitratorsService : ContractId Arbitrators.Service
+      with
+      controller operator
+      do
+        create Arbitrators.Service with operator; arbitrators = S.empty
+
+
+    nonconsuming choice ApproveArbitratorService : ContractId Arbitrators.Service
+      with
+        serviceReqCid : ContractId Arbitrators.Request
+        serviceCid : ContractId Arbitrators.Service
+      controller operator
+      do
+        exercise serviceReqCid Arbitrators.Approve with serviceCid
+
+
+    nonconsuming choice OfferArbitratorService : ContractId Arbitrators.Offer
+      with
+        arbitrator : Party
+        serviceCid : ContractId Arbitrators.Service
+      controller operator
+      do
+        create Arbitrators.Offer with operator; arbitrator; serviceCid
+
+
+---- END ---- ARBITRATORS
+
+---- BEGIN ---- PROPOSAL
+
+    nonconsuming choice ApproveProposalServiceRequest : ContractId Proposal.Service
+      with 
+        proposalReqCid : ContractId Proposal.Request
+      controller operator
+      do 
+        exercise proposalReqCid Proposal.Approve 
+
+---- END ---- PROPOSAL
+
+---- BEGIN ---- LEASE AGREEMENT
+    nonconsuming choice ApproveLeaseAgreementService : ContractId LeaseAgreement.Service
+      with 
+        laServiceReqCid : ContractId LeaseAgreement.Request
+        lifecycler:Party
+      controller operator
+      do 
+        exercise laServiceReqCid LeaseAgreement.Approve with lifecycler
+    
+
+---- END ---- LEASE AGREEMENT
+
+
+---- BEGIN ---- MAINTENANCE ISSUES
+
+
+---- END ---- MAINTENANCE ISSUES

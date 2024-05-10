@@ -1,0 +1,149 @@
+module Platform.LeaseAgreement.ModelMI where
+
+import DA.Set qualified as S
+import Interface.Types as Types (Parties, House, Breakdown, Responsability(..), AssessmentDetails(..), MIkey(..)) 
+
+template MI
+  with
+    operator : Party
+    reporter : Party
+    counterpart : Party
+    arbitrators : Parties
+    nArbitrators : Int
+    house : House
+    breakdown : Breakdown
+    assessment : Optional AssessmentDetails
+  where
+    signatory reporter
+    observer reporter, counterpart, arbitrators, operator
+
+    key MIkey with reporter, house, breakdown : (MIkey)
+    maintainer key.reporter 
+
+
+
+    choice SetArbitrators : ContractId MI
+      with 
+        arbitrators : Parties
+      controller operator
+      do 
+        create this with arbitrators
+    
+    choice SetAssessment : ContractId MI
+      with 
+        arbitrator : Party
+        assessment : AssessmentDetails
+      controller arbitrator
+      do 
+        create this with assessment = Some assessment
+
+
+
+template InviteArbitrators
+  with
+    operator : Party
+    invited : Parties
+    confirmed : Parties
+    miKey : MIkey
+    nArbitrators : Int 
+  where
+    signatory operator
+    observer invited
+
+    ensure S.size confirmed <= nArbitrators
+
+    choice Accept : ContractId InviteArbitrators
+      with 
+        arbitrator : Party
+      controller arbitrator
+      do
+        assertMsg "The Party is already confirmed in the MI." (S.notMember arbitrator confirmed)
+        assertMsg "Impossible to accept because the number of arbitrators has been matched." (S.size confirmed < nArbitrators)
+        create this with confirmed = S.insert arbitrator confirmed; invited = S.delete arbitrator invited
+
+    choice FinalizeInvitation : ContractId MI
+      controller operator
+      do
+        assertMsg "Tried to finalize agreement with not enought confirmed arbitrators." (S.size confirmed == nArbitrators)
+        exerciseByKey @MI miKey SetArbitrators with arbitrators=confirmed
+
+
+
+
+
+template Assessment
+  with 
+    approvers : Parties
+    assessmentDetails : AssessmentDetails
+    miKey : MIkey     -- could be the ContractId
+    alreadySigned : Parties
+  where 
+    signatory alreadySigned
+    observer  approvers
+    
+
+    choice Sign : ContractId Assessment 
+      with
+        signer : Party
+      controller signer
+        do
+          -- Check the controller is in the toSign set, and if they are, sign the Pending contract
+          assert (S.member signer (toSign this))
+          create this with alreadySigned = S.insert signer alreadySigned   
+
+    choice FinalizeAssessment : ContractId MI
+      with 
+        finalizer : Party
+      controller finalizer
+      do
+         assertMsg "Not every Party Signed the Assessment" (alreadySigned == approvers)
+         exerciseByKey @MI miKey SetAssessment with arbitrator = finalizer; assessment = assessmentDetails
+
+
+toSign : Assessment -> Parties
+toSign Assessment {alreadySigned, approvers} = S.difference approvers alreadySigned
+
+
+
+
+-- The creator of the votation should be saved in the ledger no ?
+template Votation
+  with 
+    creator : Party
+    description : Text
+    voters : Parties  -- must be arbitroators from mikey to make sure of that is should be operator signatory
+    miKey : MIkey     -- could be the ContractId
+    alreadyVoted : Parties
+    result : AssessmentDetails
+  where 
+    signatory alreadyVoted
+    observer  voters
+
+    choice Vote : ContractId Votation 
+      with
+        voter : Party
+        vote : Responsability
+      controller voter
+        do
+          -- Check the controller is in the toSign set, and if they are, sign the Pending contract
+          -- vote should be just the responsabilities
+          assert (S.member voter (toVote this))
+          let newReporterResp = result.responsability.reporterResp + vote.reporterResp / (S.size voters)
+              newCounterpartResp = result.responsability.counterpartResp + vote.counterpartResp / (S.size voters)
+              responsability = Responsability with reporterResp=newReporterResp, counterpartResp=newCounterpartResp
+
+              newResult = AssessmentDetails with responsability, cost=result.cost, assessmentDate=result.assessmentDate, reparationDate=result.reparationDate 
+          
+          create Votation with creator; description; voters; miKey; alreadyVoted = S.insert voter voters; result = newResult
+
+    choice FinalizeVotation : ContractId MI
+      with 
+        finalizer : Party
+      controller finalizer
+      do
+        assertMsg "Tried to finalize votation with out all votes completed." (alreadyVoted==voters)
+        exerciseByKey @MI miKey SetAssessment with arbitrator = finalizer; assessment = result
+
+
+toVote : Votation -> Parties
+toVote Votation {alreadyVoted, voters} = S.difference voters alreadyVoted

@@ -1,0 +1,50 @@
+module Test.Rent where
+
+import Daml.Script
+import DA.Date 
+import qualified DA.Set as S
+import Test.LAcreation 
+import Interface.Types as Types 
+import Time.Clock
+import Platform.Lifecycle.Evolve (Evolve(..), ProcessEvent(..))
+
+
+
+
+assignment = do
+    
+  (parties, contracts, house, leaseTerms) <- laCreation
+
+  public <- allocateParty "Public"
+  
+
+
+  let alice = parties.alice            
+      operator = parties.operator      
+      bob = parties.bob                
+      timeProvider = parties.timeProvider
+      
+      operatorRoleCid = contracts.operatorRoleCid
+      adminRoleCid = contracts.adminRoleCid
+      laServiceCid = contracts.laServiceCid
+
+      laKey = LAkey with tenant = bob; house 
+
+  clockCid <- submit timeProvider do
+    createCmd DateClock with provider = timeProvider; clockDate = date 2023 Jan 1; description="Normal Clock"; observers = S.singleton public
+
+
+  (clockCid, eventCid) <- submit timeProvider do
+    exerciseCmd clockCid Advance with days=50
+
+  evolveCid <- submit operator do 
+    createCmd Evolve with operator; lifecycler=timeProvider; laKeys = S.singleton laKey
+  
+  submit timeProvider do
+    exerciseCmd evolveCid ProcessEvent with eventCid
+
+  submit timeProvider do
+    exerciseCmd evolveCid ProcessEvent with eventCid
+
+  pure()
+

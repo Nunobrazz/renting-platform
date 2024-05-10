@@ -1,0 +1,81 @@
+module Interface.Types where
+
+
+import DA.Set
+
+-- | A set of parties.
+type Parties = Set Party
+
+type LAkeys = Set LAkey
+
+
+-- A textual identifier. -- Decide identifiers for house, LA, PA
+newtype Id = Id Text
+  deriving (Eq, Ord)
+
+instance Show Id where
+  show (Id t) = t
+
+
+
+data House=House 
+  with
+    host: Party         -- Owner of the house
+    address: Text       -- House address
+    details: Text       -- House Details
+    rent : Int          -- House rent
+  deriving (Eq,Ord, Show)
+
+
+data LeaseTerms=LeaseTerms 
+  with
+    rent : Int            -- Counter Offer of the rent
+    beginingDate: Date    -- First day of rent
+    paymentDates: [Date]  -- When will the payments be made
+    nArbitrators : Int
+  deriving (Eq, Show)
+
+
+data Breakdown=Breakdown 
+  with
+    startingDate : Date
+    description : Text
+  deriving (Eq, Show)
+
+data Responsability=Responsability 
+  with
+    reporterResp : Int
+    counterpartResp : Int
+    --companyResp   if company resp exists someone from there has to sign
+  deriving (Eq, Show)
+
+data AssessmentDetails=AssessmentDetails 
+  with
+    responsability : Responsability 
+    cost : Optional Int
+    assessmentDate : Date
+    reparationDate : Optional Date
+  deriving (Eq, Show)
+
+
+data LAkey = LAkey
+  with
+    tenant : Party
+    house : House
+  deriving (Eq, Ord, Show)
+
+
+
+data MIkey = MIkey
+  with
+    reporter: Party
+    house : House
+    breakdown : Breakdown
+  deriving (Eq, Show)
+
+
+data Claim = Claim
+  with
+    claimDate: Date
+    amount : Int
+  deriving (Eq, Show)

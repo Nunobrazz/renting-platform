@@ -1,0 +1,149 @@
+module Platform.Role.Arbitrator where
+
+import qualified DA.Set as S
+import Interface.Types as Types (Parties, AssessmentDetails, MIkey(..)) 
+import Platform.LeaseAgreement.ModelMI qualified as MImodel (MI(..), InviteArbitrators(..), Accept(..), FinalizeInvitation(..), Votation(..), Vote(..), FinalizeVotation(..))
+
+
+
+
+-- Decide if implement like this or as Role
+
+
+{--template Arbitrators
+  with
+    operator : Party     
+    arbitrators : Parties
+  where
+    signatory operator    
+    observer arbitrators
+    
+
+---- BEGIN ---- EDIT ROLE
+
+    choice AddArbitrator : ContractId Arbitrators
+      with 
+        arbitrator : Party
+      controller operator
+      do
+      create this with arbitrators = S.insert arbitrator arbitrators
+
+---- END ---- EDIT ROLE
+
+
+
+---- BEGIN ---- ARBITRATORS ATTRIBUTION
+
+    nonconsuming choice InviteArbitrators : ContractId MImodel.InviteArbitrators
+      with 
+        miKey : MIkey
+      controller operator
+      do
+        (_, MImodel.MI{nArbitrators}) <- fetchByKey @MImodel.MI miKey -- This fetch maybe is dispensible 
+        create MImodel.InviteArbitrators with operator; invited=arbitrators; confirmed=S.empty; miKey; nArbitrators
+
+
+    nonconsuming choice AcceptMI : ContractId MImodel.InviteArbitrators
+      with 
+        inviteArbitratorsCid : ContractId MImodel.InviteArbitrators
+        arbitrator :  Party
+      controller arbitrator
+      do
+        exercise inviteArbitratorsCid MImodel.Accept with arbitrator
+
+
+    nonconsuming choice AssignArbitrators : ContractId MImodel.MI
+      with 
+        inviteArbitratorsCid : ContractId MImodel.InviteArbitrators
+      controller operator
+      do
+        exercise inviteArbitratorsCid MImodel.FinalizeInvitation
+
+---- END ---- ARBITRATORS ATTRIBUTION
+
+
+
+---- BEGIN ---- ARBITRATORS VOTATION
+    nonconsuming choice CreateVotation : ContractId MImodel.Votation
+      with 
+        creator : Party
+        description : Text
+        miKey : MIkey     
+        vote : AssessmentDetails
+      controller creator
+      do
+        (_, MImodel.MI{arbitrators}) <- fetchByKey @MImodel.MI miKey -- This fetch maybe is dispensible 
+        
+        create MImodel.Votation with creator; description; voters=S.delete creator arbitrators; miKey; alreadyVoted = S.fromList [creator]; result=vote
+
+    nonconsuming choice SubmitVote : ContractId MImodel.Votation
+      with 
+        voter : Party
+        vote : AssessmentDetails
+        votationCid : ContractId MImodel.Votation
+      controller voter
+      do
+        exercise votationCid MImodel.Vote with voter; vote
+
+    nonconsuming choice FinalizeVotation : ContractId MImodel.MI
+      with 
+        finalizer : Party
+        votationCid : ContractId MImodel.Votation
+      controller finalizer
+      do
+        exercise votationCid MImodel.FinalizeVotation with finalizer
+
+    
+---- END ---- ARBITRATORS VOTATION
+
+
+
+
+
+
+
+
+
+-- the accepts doesnt work beacuse arbitrator cannot exercise choice
+template Offer
+  with
+    operator : Party
+    arbitrator : Party
+    roleCid : ContractId Arbitrators
+  where
+    signatory operator
+    observer arbitrator
+
+    choice Accept : ContractId Arbitrators
+      controller arbitrator
+      do
+        exercise roleCid AddArbitrator with arbitrator
+
+    choice Decline : ()
+      controller arbitrator
+      do
+        return ()
+
+
+
+
+template Request
+  with
+    arbitrator : Party
+    operator : Party
+  where
+    signatory arbitrator
+    observer operator
+
+    choice Approve : ContractId Arbitrators
+      with 
+        roleCid : ContractId Arbitrators
+      controller operator
+      do
+        exercise roleCid AddArbitrator with arbitrator
+
+
+    choice Reject : ()
+      controller operator
+      do
+        return ()--}
