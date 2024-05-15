@@ -4,7 +4,7 @@ module Platform.LeaseAgreement.ModelLA where
 import DA.List
 import DA.Foldable (forA_)
 import Interface.Types as Types (House, LeaseTerms, LAkey(..)) 
-import Platform.Lifecycle.Iou
+import Time.Lifecycle.Iou
 
 -- https://docs.daml.com/daml-finance/packages/implementations/daml-finance-instrument-bond.html
 -- https://docs.daml.com/triggers/index.html

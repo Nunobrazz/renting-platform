@@ -1,10 +1,13 @@
 module Test.Roles where
 
+import qualified DA.Set as S
 import Daml.Script
 import DA.Date
 import Interface.Types as Types (House(..), LeaseTerms(..))
 import Platform.Role.Admin qualified as Admin
 import Platform.Role.Operator qualified as Operator (Role(..))
+import Time.Clock
+import Time.Lifecycle.Evolve
 
 
 data Parties = Parties
@@ -14,11 +17,14 @@ data Parties = Parties
     operator: Party
     admin: Party
     timeProvider: Party
+    public : Party
 
 data Contracts = Contracts
   with
     operatorRoleCid : ContractId Operator.Role
     adminRoleCid : ContractId Admin.Role
+    clockCid : ContractId DateClock
+    evolveCid : ContractId Evolve
 
 init = script do 
 
@@ -28,12 +34,13 @@ init = script do
     charlie <- allocateParty "Charlie"                    
     admin <- allocateParty "Admin"               
     timeProvider <- allocateParty "TimeProvider"    
+    public <- allocateParty "Public"
 
 
    
     let house = House with host=alice; address = "Telheiras"; details = "This is a nice house"; rent=100
         leaseTerms = LeaseTerms with rent=100; beginingDate = date 2023 Jan 1; paymentDates=[date 2023 Jan 2, date 2023 Feb 1, date 2023 Mar 1]; nArbitrators = 2
-        parties = Parties with alice; bob; operator; admin; timeProvider
+        parties = Parties with alice; bob; operator; admin; timeProvider; public
 
 
     operatorRoleCid <- submit operator do
@@ -45,8 +52,13 @@ init = script do
     adminRoleCid <- submit parties.admin do
       exerciseCmd adminOfferCid Admin.Accept  
 
+    clockCid <- submit timeProvider do
+      createCmd DateClock with provider = timeProvider; clockDate = date 2023 Jan 1; description="Normal Clock"; observers = S.singleton public
+    
+    evolveCid <- submit operator do
+      createCmd Evolve with operator; lifecycler=timeProvider; laKeys = S.empty
 
 
-    let contracts = Contracts with operatorRoleCid; adminRoleCid
+    let contracts = Contracts with operatorRoleCid; adminRoleCid; clockCid;evolveCid
     return (parties, contracts, house, leaseTerms)
 

@@ -24,7 +24,7 @@ data House=House
     address: Text       -- House address
     details: Text       -- House Details
     rent : Int          -- House rent
-  deriving (Eq,Ord, Show)
+  deriving (Eq, Ord, Show)
 
 
 data LeaseTerms=LeaseTerms 

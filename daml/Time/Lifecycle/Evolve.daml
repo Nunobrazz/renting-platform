@@ -1,0 +1,42 @@
+
+module Time.Lifecycle.Evolve where
+
+import qualified DA.Set as S
+import DA.Foldable (forA_)
+import Interface.Types as Types ( LAkey(..), LAkeys) 
+import Time.Clock (DateClockUpdateEvent(..))
+import Platform.LeaseAgreement.ModelLA
+
+
+template Evolve
+  with
+    operator : Party  
+    lifecycler : Party
+    laKeys : LAkeys
+  where 
+    signatory operator
+    observer lifecycler 
+
+    
+    choice AddLA : ContractId Evolve 
+      with
+        laKey : LAkey
+      controller operator
+      do
+        create this with laKeys = S.insert laKey laKeys 
+        
+
+    -- The verification of the payment date is done here to interrupt during less time other interactions with the LA-SC
+    nonconsuming choice ProcessEvent : ()
+      with 
+        eventCid : ContractId DateClockUpdateEvent
+      controller lifecycler
+      do 
+
+        DateClockUpdateEvent{eventDate} <- fetch eventCid
+
+        forA_ laKeys (\laKey ->
+          do 
+            exerciseByKey @LeaseAgreement laKey ProcessPayment with date = eventDate
+          )
+          

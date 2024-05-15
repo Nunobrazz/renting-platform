@@ -21,7 +21,6 @@ template MI
     maintainer key.reporter 
 
 
-
     choice SetArbitrators : ContractId MI
       with 
         arbitrators : Parties
@@ -118,7 +117,10 @@ template Votation
   where 
     signatory alreadyVoted
     observer  voters
-
+    
+    -- can only exist one votation per MI
+    
+    
     choice Vote : ContractId Votation 
       with
         voter : Party

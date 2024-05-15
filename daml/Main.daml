@@ -1,0 +1,14 @@
+module Main where
+
+
+import Test.LAcreation 
+import Daml.Script
+
+
+initialize : Script Party
+initialize = do
+
+  (parties, contracts, house, leaseTerms) <- laCreation
+  
+  pure parties.timeProvider
+

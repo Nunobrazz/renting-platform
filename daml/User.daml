@@ -26,6 +26,28 @@ template User with
         create this with following = userToFollow :: following
     -- FOLLOW_END
 
+    nonconsuming choice SendMessage: ContractId Message 
+      with
+        text : Text 
+        sender : Party
+      controller sender
+      do
+        assertMsg "Designated user must follow you back to send a message" (elem sender following)
+        create Message with receiver=username; sender; text
+
+
+
+template Message 
+  with 
+    text : Text 
+    receiver : Party
+    sender : Party
+  where
+    signatory sender, receiver
+
+  
+
+
 -- ALIAS_BEGIN
 template Alias with
     username: Party

@@ -42,7 +42,6 @@ template Service
         (_, MImodel.MI{nArbitrators}) <- fetchByKey @MImodel.MI miKey -- This fetch maybe is dispensible 
         create MImodel.InviteArbitrators with operator; invited=arbitrators; confirmed=S.empty; miKey; nArbitrators
 
-
     nonconsuming choice AcceptMI : ContractId MImodel.InviteArbitrators
       with 
         inviteArbitratorsCid : ContractId MImodel.InviteArbitrators
@@ -50,7 +49,6 @@ template Service
       controller arbitrator
       do
         exercise inviteArbitratorsCid MImodel.Accept with arbitrator
-
 
     nonconsuming choice AssignArbitrators : ContractId MImodel.MI
       with 
@@ -97,10 +95,6 @@ template Service
 
     
 ---- END ---- ARBITRATORS VOTATION
-
-
-
-
 
 
 

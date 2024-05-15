@@ -7,6 +7,7 @@ import { Party } from '@daml/types';
 import { User } from '@daml.js/rentingPlatform';
 import { publicContext, userContext } from './App';
 import UserList from './UserList';
+import MessageList from './MessageList';
 import PartyListEdit from './PartyListEdit';
 
 // USERS_BEGIN
@@ -36,6 +37,12 @@ const MainView: React.FC = () => {
   // FOLLOW_BEGIN
   const ledger = userContext.useLedger();
 
+  /**
+   * Follows a user by exercising the 'Follow' choice on the 'User' template with the given 'userToFollow' party.
+   *
+   * @param {Party} userToFollow - The party of the user to follow.
+   * @return {Promise<boolean>} A promise that resolves to true if the follow is successful, or false otherwise.
+   */
   const follow = async (userToFollow: Party): Promise<boolean> => {
     try {
       await ledger.exerciseByKey(User.User.Follow, username, {userToFollow});
@@ -46,6 +53,12 @@ const MainView: React.FC = () => {
     }
   }
   // FOLLOW_END
+  
+
+  //recieved messsages
+  const messagesResult = userContext.useStreamQueries(User.Message);
+  const messages = messagesResult.contracts.map(message => message.payload);
+
 
   return (
     <Container>
@@ -71,6 +84,7 @@ const MainView: React.FC = () => {
                 onAddParty={follow}
               />
             </Segment>
+            
             <Segment>
               <Header as='h2'>
                 <Icon name='globe' />
@@ -85,6 +99,10 @@ const MainView: React.FC = () => {
                 users={followers}
                 partyToAlias={partyToAlias}
                 onFollow={follow}
+              />
+              <MessageList
+                messages={messages}
+                partyToAlias={partyToAlias}
               />
               {/* USERLIST_END */}
             </Segment>

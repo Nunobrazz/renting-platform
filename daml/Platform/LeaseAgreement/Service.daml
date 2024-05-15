@@ -29,7 +29,6 @@ template Service
 
 
 ---- BEGIN ---- MAINTENANCE ISSUES
-
   
     nonconsuming choice CreateMI : ContractId MImodel.MI
       with 
