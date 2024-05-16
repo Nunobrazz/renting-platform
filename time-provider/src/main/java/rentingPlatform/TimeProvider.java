@@ -44,12 +44,40 @@ public class TimeProvider {
     
     debug("Runing as party: {}", party);
 
+    debug("First thread id:" + Thread.currentThread().getId(), "");
+    
+
+    debug("LEDGER COMMUNICATION", "");
     LedgerCommunication ledger = new LedgerCommunication(ledgerhost, ledgerApiPort, party);
     
-    ledger.initializeContracts();
+    
+    debug("Active Threads: {}", Thread.activeCount());
+    
 
-    ledger.advanceClock(1);
-   
+    ledger.getCurrentActiveContracts();
+
+    debug("Active Threads: {}", Thread.activeCount());
+
+
+    ledger.activateEvolveContractProbing();
+
+    debug("Active Threads: {}", Thread.activeCount());
+
+
+    while (true) {
+      try {
+        debug("\n\nSleeping 7 secs..." ,"");
+        Thread.sleep( 7000);
+        ledger.advanceClock(1);
+        debug("Active Threads: {}", Thread.activeCount());
+
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+
+
+
 
     /*/ Schedule advance days
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -65,7 +93,7 @@ public class TimeProvider {
 
   }
 
-  public static void debug(String s1, String s2) {
+  public static void debug(String s1 , Object  s2) {
     logger.info(s1,s2);
   }
 

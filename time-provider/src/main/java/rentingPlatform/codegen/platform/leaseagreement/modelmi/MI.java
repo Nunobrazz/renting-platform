@@ -48,7 +48,7 @@ import rentingPlatform.codegen.interface$.types.House;
 import rentingPlatform.codegen.interface$.types.MIkey;
 
 public final class MI extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("bb7737a3fae0dab3c7cecc1b5d7d0840ffd1957d4501f41845dbecbd2bcf97c3", "Platform.LeaseAgreement.ModelMI", "MI");
+  public static final Identifier TEMPLATE_ID = new Identifier("3ab0b0842cdffab8c416d02894ad44bcc570eeb048f996af3c2257fb08640ba3", "Platform.LeaseAgreement.ModelMI", "MI");
 
   public static final Choice<MI, SetArbitrators, ContractId> CHOICE_SetArbitrators = 
       Choice.create("SetArbitrators", value$ -> value$.toValue(), value$ ->

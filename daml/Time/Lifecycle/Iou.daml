@@ -7,6 +7,7 @@ template Iou
     debtor : Party
     owner : Party
     amount : Int
+    creationDate : Date
   where
     signatory creator
     ensure amount > 0

@@ -44,7 +44,7 @@ import rentingPlatform.codegen.platform.leaseagreement.service.Request;
 import rentingPlatform.codegen.platform.leaseagreement.service.Service;
 
 public final class Role extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("bb7737a3fae0dab3c7cecc1b5d7d0840ffd1957d4501f41845dbecbd2bcf97c3", "Platform.Role.Operator", "Role");
+  public static final Identifier TEMPLATE_ID = new Identifier("3ab0b0842cdffab8c416d02894ad44bcc570eeb048f996af3c2257fb08640ba3", "Platform.Role.Operator", "Role");
 
   public static final Choice<Role, ApproveLeaseAgreementService, Service.ContractId> CHOICE_ApproveLeaseAgreementService = 
       Choice.create("ApproveLeaseAgreementService", value$ -> value$.toValue(), value$ ->

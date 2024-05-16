@@ -10,5 +10,17 @@ initialize = do
 
   (parties, contracts, house, leaseTerms) <- laCreation
   
+  aliceId <- validateUserId "alice"
+  bobId <- validateUserId "bob"
+  operatorId <- validateUserId "operator"
+  timeProviderId <- validateUserId "timeProvider"
+
+  createUser (User aliceId (Some parties.alice)) [CanActAs parties.alice]
+  createUser (User bobId (Some parties.bob)) [CanActAs parties.bob]
+  createUser (User operatorId (Some parties.operator)) [CanActAs parties.operator]
+  createUser (User timeProviderId (Some parties.timeProvider)) [CanActAs parties.timeProvider]
+  
+
+
   pure parties.timeProvider
 

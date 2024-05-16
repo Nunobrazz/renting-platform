@@ -38,7 +38,7 @@ template LeaseAgreement
           do
             forA_ payments (\payment ->
               do
-                create Iou with creator=lifecycler; debtor=tenant; owner=house.host, amount=leaseTerms.rent
+                create Iou with creator=lifecycler; debtor=tenant; owner=house.host, amount=leaseTerms.rent, creationDate=date
               )
             archive self
             create LeaseAgreement with operator;lifecycler;tenant;house;leaseTerms; paymentsToProcess = newPaymentsToProcess

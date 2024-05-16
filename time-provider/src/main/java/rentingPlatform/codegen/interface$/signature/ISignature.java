@@ -21,7 +21,7 @@ import java.lang.String;
 import java.util.List;
 
 public final class ISignature {
-  public static final Identifier TEMPLATE_ID = new Identifier("bb7737a3fae0dab3c7cecc1b5d7d0840ffd1957d4501f41845dbecbd2bcf97c3", "Interface.Signature", "ISignature");
+  public static final Identifier TEMPLATE_ID = new Identifier("3ab0b0842cdffab8c416d02894ad44bcc570eeb048f996af3c2257fb08640ba3", "Interface.Signature", "ISignature");
 
   public static final Choice<ISignature, Sign, ContractId> CHOICE_Sign = 
       Choice.create("Sign", value$ -> value$.toValue(), value$ -> Sign.valueDecoder()

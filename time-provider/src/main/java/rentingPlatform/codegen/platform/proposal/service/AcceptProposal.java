@@ -23,7 +23,7 @@ import java.util.Objects;
 import rentingPlatform.codegen.platform.proposal.model.Proposal;
 
 public class AcceptProposal extends DamlRecord<AcceptProposal> {
-  public static final String _packageId = "bb7737a3fae0dab3c7cecc1b5d7d0840ffd1957d4501f41845dbecbd2bcf97c3";
+  public static final String _packageId = "3ab0b0842cdffab8c416d02894ad44bcc570eeb048f996af3c2257fb08640ba3";
 
   public final Proposal.ContractId proposalCid;
 

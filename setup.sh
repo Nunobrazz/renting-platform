@@ -10,7 +10,6 @@ if [ $# -ne 0 ]; then
   daml codegen java;
 
 fi
-
 cd time-provider;
 
 mvn clean install compile;

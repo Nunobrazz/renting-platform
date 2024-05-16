@@ -28,13 +28,13 @@ data Contracts = Contracts
 
 init = script do 
 
-    alice <- allocateParty "Alice"                
-    operator <- allocateParty "Operator"          
-    bob <- allocateParty "Bob"                    
-    charlie <- allocateParty "Charlie"                    
-    admin <- allocateParty "Admin"               
-    timeProvider <- allocateParty "TimeProvider"    
-    public <- allocateParty "Public"
+    alice <- allocatePartyWithHint "Alice" (PartyIdHint "Alice")              
+    operator <- allocatePartyWithHint "Operator" (PartyIdHint "Operator")              
+    bob <- allocatePartyWithHint "Bob" (PartyIdHint "Bob")                       
+    charlie <- allocatePartyWithHint "Charlie" (PartyIdHint "Charlie")                     
+    admin <- allocatePartyWithHint "Admin" (PartyIdHint "Admin")                 
+    timeProvider <- allocatePartyWithHint "TimeProvider" (PartyIdHint "TimeProvider")     
+    public <- allocatePartyWithHint "Public" (PartyIdHint "Public")    
 
 
    

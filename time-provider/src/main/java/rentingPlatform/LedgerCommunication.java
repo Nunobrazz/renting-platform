@@ -40,9 +40,6 @@ public class LedgerCommunication {
   public Evolve.ContractId evolveCid;
 
 
-  public ConcurrentHashMap<Long, Evolve> evolveData = new ConcurrentHashMap<>();
-  public BiMap<Long, Evolve.ContractId> evolveCids = Maps.synchronizedBiMap(HashBiMap.create());
-
   
   LedgerCommunication(String ledgerhost, int ledgerApiPort, String partyArg) {
     
@@ -59,7 +56,7 @@ public class LedgerCommunication {
   }
 
 
-  public void initializeContracts() {
+  public void getCurrentActiveContracts() {
     client
         .getActiveContractSetClient()
         .getActiveContracts(DateClock.contractFilter(), Collections.singleton(party), true)
@@ -82,15 +79,10 @@ public class LedgerCommunication {
               response.offset.ifPresent(offset -> acsOffset.set(new LedgerOffset.Absolute(offset)));
               response.activeContracts.forEach(
                   contract -> {
-                    long id = idCounter.getAndIncrement();
-                    evolveData.put(id, contract.data);
-                    evolveCids.put(id, contract.id);
+                    evolveCid = contract.id;
                   });
           });
 
-
-    debug("evolveCids: {}", evolveCids.toString());
-    debug("evolveData: {}", evolveData.toString());
 
   }
 
@@ -98,25 +90,27 @@ public class LedgerCommunication {
   // everyday advance clock by 1 day and probes better to create a thread that always probes updates to evolveclockCid var
   public void advanceClock(int days) {
 
+    debug ("ADVANCE CLOCK: ", days);
+
     var update = dateClockCid.exerciseAdvance((long) days);
     var result = submit(client, party, update); // NewClock and DateClockEvent
     
     dateClockCid = result.exerciseResult._1;
 
     processClockEvent(result.exerciseResult._2);
-
-    probeEvolveContracts();
+    //probeEvolveContracts();
 
   }
 
   private void processClockEvent(DateClockUpdateEvent.ContractId eventCid) {
-    Evolve.ContractId evolveCid = evolveCids.get((long) 0);
-    var update = evolveCid.exerciseProcessEvent(eventCid); // this is the type of result
-    submit(client, party, update); // NewClock and DateClockEvent
+    var update = evolveCid.exerciseProcessEvent(eventCid); 
+    submit(client, party, update); 
   }
 
 
-  private void probeEvolveContracts () {
+  public void activateEvolveContractProbing() { // This assumes only one evolve contract per Time Provider
+    debug ("PROBE EVOLVE CONTRACTS", "");
+
     client
             .getTransactionsClient()
             .getTransactions(           // does this create a specifi thread ??
@@ -128,6 +122,7 @@ public class LedgerCommunication {
                       CreatedEvent createdEvent = (CreatedEvent) event;
                       Evolve.Contract evolveContract = Evolve.Contract.fromCreatedEvent(createdEvent);
                       evolveCid = evolveContract.id;
+                      debug("New Evolve added by thread " + Thread.currentThread().getId()+ " {}",  evolveContract.id.toString());
                     } 
                   } // Devo fazer mais verificações ?
                 });

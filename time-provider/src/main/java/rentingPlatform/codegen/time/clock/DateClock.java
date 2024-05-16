@@ -44,7 +44,7 @@ import rentingPlatform.codegen.da.set.types.Set;
 import rentingPlatform.codegen.da.types.Tuple2;
 
 public final class DateClock extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("bb7737a3fae0dab3c7cecc1b5d7d0840ffd1957d4501f41845dbecbd2bcf97c3", "Time.Clock", "DateClock");
+  public static final Identifier TEMPLATE_ID = new Identifier("3ab0b0842cdffab8c416d02894ad44bcc570eeb048f996af3c2257fb08640ba3", "Time.Clock", "DateClock");
 
   public static final Choice<DateClock, Advance, Tuple2<ContractId, DateClockUpdateEvent.ContractId>> CHOICE_Advance = 
       Choice.create("Advance", value$ -> value$.toValue(), value$ -> Advance.valueDecoder()

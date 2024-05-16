@@ -2,12 +2,13 @@ sdk-version: 2.8.3
 name: rentingPlatform
 version: 0.1.0
 source: daml
+init-script: Main:initialize
 dependencies:
 - daml-prim
 - daml-stdlib
 - daml-script
 - daml-trigger
-start-navigator: false
+start-navigator: true
 codegen:
   js:
     output-directory: ui/daml.js
@@ -16,7 +17,3 @@ codegen:
   java:
     package-prefix: rentingPlatform.codegen
     output-directory: time-provider/src/main/java/
-
-# Remove this line when running against a ledger without user management.
-# init-script: Setup:setup
-  

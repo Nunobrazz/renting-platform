@@ -1,11 +1,10 @@
 module Test.Rent where
 
 import Daml.Script
-import qualified DA.Set as S
 import Test.LAcreation 
 import Interface.Types as Types 
 import Time.Clock
-import Time.Lifecycle.Evolve (Evolve(..), ProcessEvent(..), AddLA(..))
+import Time.Lifecycle.Evolve (ProcessEvent(..), AddLA(..))
 
 
 

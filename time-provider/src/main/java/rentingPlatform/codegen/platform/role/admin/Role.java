@@ -42,7 +42,7 @@ import java.util.Set;
 import rentingPlatform.codegen.da.types.Tuple2;
 
 public final class Role extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("bb7737a3fae0dab3c7cecc1b5d7d0840ffd1957d4501f41845dbecbd2bcf97c3", "Platform.Role.Admin", "Role");
+  public static final Identifier TEMPLATE_ID = new Identifier("3ab0b0842cdffab8c416d02894ad44bcc570eeb048f996af3c2257fb08640ba3", "Platform.Role.Admin", "Role");
 
   public static final Choice<Role, rentingPlatform.codegen.da.internal.template.Archive, Unit> CHOICE_Archive = 
       Choice.create("Archive", value$ -> value$.toValue(), value$ ->

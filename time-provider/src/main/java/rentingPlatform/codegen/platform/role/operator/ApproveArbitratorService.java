@@ -24,7 +24,7 @@ import rentingPlatform.codegen.platform.leaseagreement.arbitratorsservice.Reques
 import rentingPlatform.codegen.platform.leaseagreement.arbitratorsservice.Service;
 
 public class ApproveArbitratorService extends DamlRecord<ApproveArbitratorService> {
-  public static final String _packageId = "bb7737a3fae0dab3c7cecc1b5d7d0840ffd1957d4501f41845dbecbd2bcf97c3";
+  public static final String _packageId = "3ab0b0842cdffab8c416d02894ad44bcc570eeb048f996af3c2257fb08640ba3";
 
   public final Request.ContractId serviceReqCid;
 
