@@ -39,7 +39,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public final class Request extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("3ab0b0842cdffab8c416d02894ad44bcc570eeb048f996af3c2257fb08640ba3", "Platform.LeaseAgreement.ArbitratorsService", "Request");
+  public static final Identifier TEMPLATE_ID = new Identifier("0cf664e7a7bad84bfc31440cc4ea2b4c71a9a628dbeb0437bb65cac5ef779e5e", "Platform.LeaseAgreement.ArbitratorsService", "Request");
 
   public static final Choice<Request, Approve, Service.ContractId> CHOICE_Approve = 
       Choice.create("Approve", value$ -> value$.toValue(), value$ -> Approve.valueDecoder()

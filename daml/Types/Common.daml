@@ -1,0 +1,15 @@
+module Types.Common where
+
+
+import DA.Set
+
+-- | A set of parties.
+type Parties = Set Party
+
+
+-- A textual identifier. -- Decide identifiers for house, LA, PA
+newtype Id = Id Text
+  deriving (Eq, Ord)
+
+instance Show Id where
+  show (Id t) = t

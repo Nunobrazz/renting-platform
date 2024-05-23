@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class Rewind extends DamlRecord<Rewind> {
-  public static final String _packageId = "3ab0b0842cdffab8c416d02894ad44bcc570eeb048f996af3c2257fb08640ba3";
+  public static final String _packageId = "a908e1b6b69c3b28753d77bb305a644a35e82312223c75d02319e4fa1f06cfc5";
 
   public final Long days;
 

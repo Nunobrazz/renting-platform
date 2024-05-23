@@ -24,7 +24,7 @@ import java.util.Objects;
 import rentingPlatform.codegen.interface$.types.AssessmentDetails;
 
 public class SetAssessment extends DamlRecord<SetAssessment> {
-  public static final String _packageId = "3ab0b0842cdffab8c416d02894ad44bcc570eeb048f996af3c2257fb08640ba3";
+  public static final String _packageId = "0cf664e7a7bad84bfc31440cc4ea2b4c71a9a628dbeb0437bb65cac5ef779e5e";
 
   public final String arbitrator;
 

@@ -27,9 +27,9 @@ import java.util.List;
 import java.util.Objects;
 
 public class LeaseTerms extends DamlRecord<LeaseTerms> {
-  public static final String _packageId = "3ab0b0842cdffab8c416d02894ad44bcc570eeb048f996af3c2257fb08640ba3";
+  public static final String _packageId = "0cf664e7a7bad84bfc31440cc4ea2b4c71a9a628dbeb0437bb65cac5ef779e5e";
 
-  public final Long rent;
+  public final Long agreedRent;
 
   public final LocalDate beginingDate;
 
@@ -37,9 +37,9 @@ public class LeaseTerms extends DamlRecord<LeaseTerms> {
 
   public final Long nArbitrators;
 
-  public LeaseTerms(Long rent, LocalDate beginingDate, List<LocalDate> paymentDates,
+  public LeaseTerms(Long agreedRent, LocalDate beginingDate, List<LocalDate> paymentDates,
       Long nArbitrators) {
-    this.rent = rent;
+    this.agreedRent = agreedRent;
     this.beginingDate = beginingDate;
     this.paymentDates = paymentDates;
     this.nArbitrators = nArbitrators;
@@ -58,18 +58,18 @@ public class LeaseTerms extends DamlRecord<LeaseTerms> {
       Value recordValue$ = value$;
       List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(4,0,
           recordValue$);
-      Long rent = PrimitiveValueDecoders.fromInt64.decode(fields$.get(0).getValue());
+      Long agreedRent = PrimitiveValueDecoders.fromInt64.decode(fields$.get(0).getValue());
       LocalDate beginingDate = PrimitiveValueDecoders.fromDate.decode(fields$.get(1).getValue());
       List<LocalDate> paymentDates = PrimitiveValueDecoders.fromList(
             PrimitiveValueDecoders.fromDate).decode(fields$.get(2).getValue());
       Long nArbitrators = PrimitiveValueDecoders.fromInt64.decode(fields$.get(3).getValue());
-      return new LeaseTerms(rent, beginingDate, paymentDates, nArbitrators);
+      return new LeaseTerms(agreedRent, beginingDate, paymentDates, nArbitrators);
     } ;
   }
 
   public com.daml.ledger.javaapi.data.DamlRecord toValue() {
     ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field> fields = new ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field>(4);
-    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("rent", new Int64(this.rent)));
+    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("agreedRent", new Int64(this.agreedRent)));
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("beginingDate", new Date((int) this.beginingDate.toEpochDay())));
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("paymentDates", this.paymentDates.stream().collect(DamlCollectors.toDamlList(v$0 -> new Date((int) v$0.toEpochDay())))));
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("nArbitrators", new Int64(this.nArbitrators)));
@@ -77,9 +77,9 @@ public class LeaseTerms extends DamlRecord<LeaseTerms> {
   }
 
   public static JsonLfDecoder<LeaseTerms> jsonDecoder() {
-    return JsonLfDecoders.record(Arrays.asList("rent", "beginingDate", "paymentDates", "nArbitrators"), name -> {
+    return JsonLfDecoders.record(Arrays.asList("agreedRent", "beginingDate", "paymentDates", "nArbitrators"), name -> {
           switch (name) {
-            case "rent": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.int64);
+            case "agreedRent": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.int64);
             case "beginingDate": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.date);
             case "paymentDates": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(2, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.list(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.date));
             case "nArbitrators": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.int64);
@@ -95,7 +95,7 @@ public class LeaseTerms extends DamlRecord<LeaseTerms> {
 
   public JsonLfEncoder jsonEncoder() {
     return JsonLfEncoders.record(
-        JsonLfEncoders.Field.of("rent", apply(JsonLfEncoders::int64, rent)),
+        JsonLfEncoders.Field.of("agreedRent", apply(JsonLfEncoders::int64, agreedRent)),
         JsonLfEncoders.Field.of("beginingDate", apply(JsonLfEncoders::date, beginingDate)),
         JsonLfEncoders.Field.of("paymentDates", apply(JsonLfEncoders.list(JsonLfEncoders::date), paymentDates)),
         JsonLfEncoders.Field.of("nArbitrators", apply(JsonLfEncoders::int64, nArbitrators)));
@@ -113,7 +113,7 @@ public class LeaseTerms extends DamlRecord<LeaseTerms> {
       return false;
     }
     LeaseTerms other = (LeaseTerms) object;
-    return Objects.equals(this.rent, other.rent) &&
+    return Objects.equals(this.agreedRent, other.agreedRent) &&
         Objects.equals(this.beginingDate, other.beginingDate) &&
         Objects.equals(this.paymentDates, other.paymentDates) &&
         Objects.equals(this.nArbitrators, other.nArbitrators);
@@ -121,12 +121,12 @@ public class LeaseTerms extends DamlRecord<LeaseTerms> {
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.rent, this.beginingDate, this.paymentDates, this.nArbitrators);
+    return Objects.hash(this.agreedRent, this.beginingDate, this.paymentDates, this.nArbitrators);
   }
 
   @Override
   public String toString() {
     return String.format("rentingPlatform.codegen.interface$.types.LeaseTerms(%s, %s, %s, %s)",
-        this.rent, this.beginingDate, this.paymentDates, this.nArbitrators);
+        this.agreedRent, this.beginingDate, this.paymentDates, this.nArbitrators);
   }
 }

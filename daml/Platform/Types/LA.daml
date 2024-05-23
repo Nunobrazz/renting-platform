@@ -1,0 +1,13 @@
+module Platform.Types.LA where
+
+import DA.Set
+import Platform.Types.Common 
+
+type LAkeys = Set LAkey
+
+data LAkey = LAkey
+  with
+    tenant : Party
+    house : House
+  deriving (Eq, Ord, Show)
+

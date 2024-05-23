@@ -1,7 +1,9 @@
 module Platform.LeaseAgreement.Service where
 
 import qualified DA.Set as S
-import Interface.Types as Types (Breakdown, House, LeaseTerms, AssessmentDetails, LAkey(..), MIkey) 
+import Platform.Types.Common 
+import Platform.Types.LA 
+import Platform.Types.MI 
 import Platform.LeaseAgreement.ModelLA qualified as LAmodel (LeaseAgreement(..))
 import Platform.LeaseAgreement.ModelMI qualified as MImodel (MI(..), Assessment(..), Sign(..))
 
@@ -24,40 +26,37 @@ template Service
 
 
 
-
-
-
-
 ---- BEGIN ---- MAINTENANCE ISSUES
   
     nonconsuming choice CreateMI : ContractId MImodel.MI
       with 
         reporter : Party
-        breakdown : Breakdown
-      controller reporter
+        counterpart : Party
+        house : House
+        description : Text
+        startingDate : Date -- put today date
+        miDetails : MIdetails 
+      controller miDetails.reporter
       do
         assertMsg ("Creating the MI the reporter is neither tenant nor host.") (reporter == tenant || reporter == host)
+        assertMsg ("The counterpart is neither tenant nor host.") (counterpart == tenant || counterpart == host)
 
         -- Get number of arbitrators
         (_, LAmodel.LeaseAgreement{leaseTerms, house}) <- fetchByKey @LAmodel.LeaseAgreement laKey 
-        let nArbitrators = leaseTerms.nArbitrators
 
-
-        if reporter == tenant then 
-          create MImodel.MI with operator; reporter; counterpart=host; arbitrators = S.empty; nArbitrators; house; breakdown; assessment=None
-        else 
-          create MImodel.MI with operator; reporter; counterpart=tenant; arbitrators = S.empty; nArbitrators; house; breakdown; assessment=None
-
+        let miDetails = MIdetails with nArbitrators = leaseTerms.nArbitrators; house; startingDate; description
+        
+        create MImodel.MI with operator; reporter; counterpart; miDetails; arbitrators = S.empty; assessment=None
 
 
     nonconsuming choice SubmitAssessment : ContractId MImodel.Assessment
       with 
         submitter : Party
         assessmentDetails : AssessmentDetails
-        miKey : MIkey
+        miCid : ContractId MImodel.MI
       controller submitter
       do
-        create MImodel.Assessment with assessmentDetails; approvers = S.fromList [tenant, host]; miKey; alreadySigned = S.fromList [submitter]
+        create MImodel.Assessment with assessmentDetails; approvers = S.fromList [tenant, host]; miCid; alreadySigned = S.fromList [submitter]
     
 
     nonconsuming choice SignAssessment : ContractId MImodel.Assessment
@@ -98,7 +97,7 @@ template Request
       controller operator      -- operator approves
       do
         -- build lease agreement  not completed
-        create LAmodel.LeaseAgreement with operator;lifecycler; tenant=proposer; house; leaseTerms;paymentsToProcess=leaseTerms.paymentDates
+        _ <- create LAmodel.LeaseAgreement with operator;lifecycler; tenant=proposer; house; leaseTerms;paymentsToProcess=leaseTerms.paymentDates
         create Service with operator; tenant=proposer; host=house.host; laKey = LAkey with tenant=proposer;house
 
 

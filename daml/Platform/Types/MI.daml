@@ -1,0 +1,29 @@
+module Platform.Types.MI where
+
+import Platform.Types.Common 
+
+
+
+data Responsability=Responsability 
+  with
+    reporterResp : Int
+    counterpartResp : Int
+    --companyResp   if company resp exists someone from there has to sign
+  deriving (Eq, Show)
+
+data AssessmentDetails=AssessmentDetails 
+  with
+    responsability : Responsability 
+    cost : Optional Int
+    assessmentDate : Date
+    reparationDate : Optional Date
+  deriving (Eq, Show)
+
+
+data MIdetails = MIdetails
+  with
+    nArbitrators : Int
+    house : House
+    startingDate : Date
+    description : Text  
+  deriving (Eq, Show)

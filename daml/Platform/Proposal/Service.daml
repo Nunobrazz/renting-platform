@@ -1,7 +1,7 @@
 module Platform.Proposal.Service where
 
 
-import Interface.Types as Types (House, LeaseTerms) 
+import Platform.Types.Common as Types (House, LeaseTerms) 
 import Platform.Proposal.Model qualified as Model (Sign(..), Proposal(..), RequestLeaseAgreement(..))
 import Platform.LeaseAgreement.Service qualified as LAService 
 

@@ -3,8 +3,7 @@ module Test.Roles where
 import qualified DA.Set as S
 import Daml.Script
 import DA.Date
-import Interface.Types as Types (House(..), LeaseTerms(..))
-import Platform.Role.Admin qualified as Admin
+import Platform.Types.Common 
 import Platform.Role.Operator qualified as Operator (Role(..))
 import Time.Clock
 import Time.Lifecycle.Evolve
@@ -17,48 +16,45 @@ data Parties = Parties
     operator: Party
     admin: Party
     timeProvider: Party
+    arbitrator1: Party
     public : Party
 
 data Contracts = Contracts
   with
     operatorRoleCid : ContractId Operator.Role
-    adminRoleCid : ContractId Admin.Role
     clockCid : ContractId DateClock
     evolveCid : ContractId Evolve
 
+init : Script (Parties, Contracts, House, LeaseTerms)
 init = script do 
 
     alice <- allocatePartyWithHint "Alice" (PartyIdHint "Alice")              
     operator <- allocatePartyWithHint "Operator" (PartyIdHint "Operator")              
     bob <- allocatePartyWithHint "Bob" (PartyIdHint "Bob")                       
-    charlie <- allocatePartyWithHint "Charlie" (PartyIdHint "Charlie")                     
     admin <- allocatePartyWithHint "Admin" (PartyIdHint "Admin")                 
     timeProvider <- allocatePartyWithHint "TimeProvider" (PartyIdHint "TimeProvider")     
+    arbitrator1 <- allocatePartyWithHint "Arbitrator1" (PartyIdHint "Arbitrator1")     
     public <- allocatePartyWithHint "Public" (PartyIdHint "Public")    
 
-
-   
-    let house = House with host=alice; address = "Telheiras"; details = "This is a nice house"; rent=100
-        leaseTerms = LeaseTerms with rent=100; beginingDate = date 2023 Jan 1; paymentDates=[date 2023 Jan 2, date 2023 Feb 1, date 2023 Mar 1]; nArbitrators = 2
-        parties = Parties with alice; bob; operator; admin; timeProvider; public
-
+    now <- getTime
+    let house = House with host=alice; address = "Telheiras"; details = "This is a nice house"; listedRent=100 -- bug
+        leaseTerms = LeaseTerms with agreedRent=100; beginingDate = date 2024 Jan 2; paymentDates=[date 2024 Jan 3, date 2024 Feb 1, date 2024 Mar 1]; nArbitrators = 2
+        parties = Parties with alice; bob; operator; admin; timeProvider; arbitrator1; public
+        today = toDateUTC now
 
     operatorRoleCid <- submit operator do
       createCmd Operator.Role with operator
     
-    adminOfferCid <- submit parties.operator do
-      createCmd Admin.Offer with admin, operator
-
-    adminRoleCid <- submit parties.admin do
-      exerciseCmd adminOfferCid Admin.Accept  
-
+ 
     clockCid <- submit timeProvider do
-      createCmd DateClock with provider = timeProvider; clockDate = date 2023 Jan 1; description="Normal Clock"; observers = S.singleton public
+      createCmd DateClock with provider = timeProvider; clockDate = today; description="Normal Clock"; observers = S.singleton public
+    
+    _<-submit timeProvider do createCmd DateClockUpdateEvent with provider=timeProvider; eventDate=today; observers = S.singleton public
     
     evolveCid <- submit operator do
       createCmd Evolve with operator; lifecycler=timeProvider; laKeys = S.empty
 
 
-    let contracts = Contracts with operatorRoleCid; adminRoleCid; clockCid;evolveCid
+    let contracts = Contracts with operatorRoleCid; clockCid;evolveCid
     return (parties, contracts, house, leaseTerms)
 

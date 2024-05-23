@@ -1,32 +1,31 @@
 module Platform.LeaseAgreement.ModelMI where
 
 import DA.Set qualified as S
-import Interface.Types as Types (Parties, House, Breakdown, Responsability(..), AssessmentDetails(..), MIkey(..)) 
+import Types.Common
+import Platform.Types.MI 
 
-template MI
+template MI 
   with
     operator : Party
     reporter : Party
     counterpart : Party
+    miDetails: MIdetails -- nabritrators bigger then 0
     arbitrators : Parties
-    nArbitrators : Int
-    house : House
-    breakdown : Breakdown
     assessment : Optional AssessmentDetails
+    ---votationKey : Optional (ContractId Votation)
   where
     signatory reporter
     observer reporter, counterpart, arbitrators, operator
 
-    key MIkey with reporter, house, breakdown : (MIkey)
-    maintainer key.reporter 
-
+    key (reporter, miDetails) : (Party, MIdetails)
+    maintainer key._1 
 
     choice SetArbitrators : ContractId MI
       with 
         arbitrators : Parties
       controller operator
       do 
-        create this with arbitrators
+        create this with arbitrators 
     
     choice SetAssessment : ContractId MI
       with 
@@ -38,33 +37,106 @@ template MI
 
 
 
-template InviteArbitrators
+
+
+template InviteArbitrators    
   with
-    operator : Party
+    inviter : Party 
     invited : Parties
+    miDetails : MIdetails
     confirmed : Parties
-    miKey : MIkey
-    nArbitrators : Int 
+    miCid : ContractId MI
+    visitor : Optional Party
   where
-    signatory operator
+    signatory inviter
     observer invited
 
-    ensure S.size confirmed <= nArbitrators
 
-    choice Accept : ContractId InviteArbitrators
+    nonconsuming choice AcceptAndVisitor : ()
       with 
         arbitrator : Party
       controller arbitrator
       do
-        assertMsg "The Party is already confirmed in the MI." (S.notMember arbitrator confirmed)
-        assertMsg "Impossible to accept because the number of arbitrators has been matched." (S.size confirmed < nArbitrators)
-        create this with confirmed = S.insert arbitrator confirmed; invited = S.delete arbitrator invited
+      --  assertMsg "The Party is already confirmed in the MI." (S.notMember arbitrator confirmed)
+      --  assertMsg "Impossible to accept because the number of arbitrators has been matched." (S.size confirmed < miDetails.nArbitrators)
+        --Votation{voters}<- fetchByKey @Votation votationKey 
+        if S.size confirmed == miDetails.nArbitrators then do
+          archive self
+        else if visitor == None then do
+          create this with confirmed = S.insert arbitrator confirmed; visitor = Some arbitrator
+          pure()
+        else do -- assim da para apagar votos
+          create this with confirmed = S.insert arbitrator confirmed
+          pure()
 
-    choice FinalizeInvitation : ContractId MI
-      controller operator
+    choice Accept : ()
+      with 
+        arbitrator : Party
+      controller arbitrator
       do
-        assertMsg "Tried to finalize agreement with not enought confirmed arbitrators." (S.size confirmed == nArbitrators)
-        exerciseByKey @MI miKey SetArbitrators with arbitrators=confirmed
+      --  assertMsg "The Party is already confirmed in the MI." (S.notMember arbitrator confirmed)
+      --  assertMsg "Impossible to accept because the number of arbitrators has been matched." (S.size confirmed < miDetails.nArbitrators)
+        if S.size confirmed == (miDetails.nArbitrators-1) && visitor == None then do 
+          create this with confirmed = S.insert arbitrator confirmed; visitor = Some arbitrator
+          pure()
+        else if S.size confirmed == miDetails.nArbitrators then do  -- this is assert
+          -- create Votation with visitor=visitor; visitDetails=None; voters=confirmed; alreadyVoted=S.empty; result = None
+          archive self
+        else do 
+          create this with confirmed = S.insert arbitrator confirmed; visitor = Some arbitrator
+          pure()
+    
+    choice FinishInvitation : ContractId MI -- create votation and add votation key to mi
+      exercise miCid SetArbitrators with confirmed
+
+-- before they are allowed to vote the voters must be full
+template Votation
+  with 
+    visitor : Optional Party -- can have several
+    visitDetails : Optional Text
+    voters : Parties  
+    --miCid : ContractId MI
+    alreadyVoted : Parties
+    result : Optional AssessmentDetails
+  where 
+    signatory alreadyVoted
+    observer  voters
+    
+
+    -- can only exist one votation per MI
+    
+    
+    choice Vote : ContractId Votation 
+      with
+        voter : Party
+        vote : Responsability
+      controller voter
+        do
+          -- Check the controller is in the toSign set, and if they are, sign the Pending contract
+          -- vote should be just the responsabilities
+          assert (S.member voter (toVote this))
+          let newReporterResp = result.responsability.reporterResp + vote.reporterResp / (S.size voters)
+              newCounterpartResp = result.responsability.counterpartResp + vote.counterpartResp / (S.size voters)
+              responsability = Responsability with reporterResp=newReporterResp, counterpartResp=newCounterpartResp
+
+              newResult = AssessmentDetails with responsability, cost=result.cost, assessmentDate=result.assessmentDate, reparationDate=result.reparationDate 
+          
+          create Votation with visitor; visitDetails; voters; miCid; alreadyVoted = S.insert voter voters; result = newResult
+
+    choice FinalizeVotation : ContractId MI
+      with 
+        finalizer : Party
+      controller finalizer
+      do
+        assertMsg "Tried to finalize votation with out all votes completed." (alreadyVoted==voters)
+        exercise miCid SetAssessment with arbitrator = finalizer; assessment = result
+
+
+toVote : Votation -> Parties
+toVote Votation {alreadyVoted, voters} = S.difference voters alreadyVoted
+
+
+
 
 
 
@@ -74,7 +146,7 @@ template Assessment
   with 
     approvers : Parties
     assessmentDetails : AssessmentDetails
-    miKey : MIkey     -- could be the ContractId
+    miCid : ContractId MI
     alreadySigned : Parties
   where 
     signatory alreadySigned
@@ -96,56 +168,9 @@ template Assessment
       controller finalizer
       do
          assertMsg "Not every Party Signed the Assessment" (alreadySigned == approvers)
-         exerciseByKey @MI miKey SetAssessment with arbitrator = finalizer; assessment = assessmentDetails
+         exercise miCid SetAssessment with arbitrator = finalizer; assessment = assessmentDetails
 
 
 toSign : Assessment -> Parties
 toSign Assessment {alreadySigned, approvers} = S.difference approvers alreadySigned
 
-
-
-
--- The creator of the votation should be saved in the ledger no ?
-template Votation
-  with 
-    creator : Party
-    description : Text
-    voters : Parties  -- must be arbitroators from mikey to make sure of that is should be operator signatory
-    miKey : MIkey     -- could be the ContractId
-    alreadyVoted : Parties
-    result : AssessmentDetails
-  where 
-    signatory alreadyVoted
-    observer  voters
-    
-    -- can only exist one votation per MI
-    
-    
-    choice Vote : ContractId Votation 
-      with
-        voter : Party
-        vote : Responsability
-      controller voter
-        do
-          -- Check the controller is in the toSign set, and if they are, sign the Pending contract
-          -- vote should be just the responsabilities
-          assert (S.member voter (toVote this))
-          let newReporterResp = result.responsability.reporterResp + vote.reporterResp / (S.size voters)
-              newCounterpartResp = result.responsability.counterpartResp + vote.counterpartResp / (S.size voters)
-              responsability = Responsability with reporterResp=newReporterResp, counterpartResp=newCounterpartResp
-
-              newResult = AssessmentDetails with responsability, cost=result.cost, assessmentDate=result.assessmentDate, reparationDate=result.reparationDate 
-          
-          create Votation with creator; description; voters; miKey; alreadyVoted = S.insert voter voters; result = newResult
-
-    choice FinalizeVotation : ContractId MI
-      with 
-        finalizer : Party
-      controller finalizer
-      do
-        assertMsg "Tried to finalize votation with out all votes completed." (alreadyVoted==voters)
-        exerciseByKey @MI miKey SetAssessment with arbitrator = finalizer; assessment = result
-
-
-toVote : Votation -> Parties
-toVote Votation {alreadyVoted, voters} = S.difference voters alreadyVoted

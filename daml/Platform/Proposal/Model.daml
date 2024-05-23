@@ -1,7 +1,7 @@
 module Platform.Proposal.Model where
 
 import DA.List
-import Interface.Types as Types (House, LeaseTerms) 
+import Platform.Types.Common as Types (House, LeaseTerms) 
 import Platform.LeaseAgreement.Service as LAService
 
 template Proposal

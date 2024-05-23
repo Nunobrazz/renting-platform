@@ -2,24 +2,24 @@ module Test.LAcreation where
 
 import Daml.Script
 import Test.Roles qualified as Roles
-import Platform.Role.Admin qualified as Admin
 import Platform.Role.Operator qualified as Operator (Role,ApproveProposalServiceRequest(..), ApproveLeaseAgreementService(..))
 import Platform.Proposal.Service qualified as Proposal
 import Platform.LeaseAgreement.Service qualified as LA (Service)
 import Time.Clock
 import Time.Lifecycle.Evolve
+import Platform.Types.Common 
 
 
 
 data Contracts = Contracts
   with
     operatorRoleCid : ContractId Operator.Role
-    adminRoleCid : ContractId Admin.Role
     laServiceCid : ContractId LA.Service
     clockCid : ContractId DateClock
     evolveCid : ContractId Evolve
 
 
+laCreation : Script (Roles.Parties, Contracts, House, LeaseTerms)
 laCreation = script do
 
     (parties, oldContracts, house, leaseTerms) <- Roles.init
@@ -32,7 +32,6 @@ laCreation = script do
         timeProvider = parties.timeProvider
 
         operatorRoleCid = oldContracts.operatorRoleCid
-        adminRoleCid = oldContracts.adminRoleCid
         clockCid = oldContracts.clockCid
         evolveCid = oldContracts.evolveCid
         
@@ -65,6 +64,6 @@ laCreation = script do
         exerciseCmd operatorRoleCid Operator.ApproveLeaseAgreementService with laServiceReqCid=bobLAreqCid; lifecycler=timeProvider
 
 
-    let contracts = Contracts with operatorRoleCid; adminRoleCid; laServiceCid; clockCid; evolveCid
+    let contracts = Contracts with operatorRoleCid; laServiceCid; clockCid; evolveCid
 
     return (parties, contracts, house, leaseTerms)

@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class House extends DamlRecord<House> {
-  public static final String _packageId = "3ab0b0842cdffab8c416d02894ad44bcc570eeb048f996af3c2257fb08640ba3";
+  public static final String _packageId = "0cf664e7a7bad84bfc31440cc4ea2b4c71a9a628dbeb0437bb65cac5ef779e5e";
 
   public final String host;
 
@@ -34,13 +34,13 @@ public class House extends DamlRecord<House> {
 
   public final String details;
 
-  public final Long rent;
+  public final Long listedRent;
 
-  public House(String host, String address, String details, Long rent) {
+  public House(String host, String address, String details, Long listedRent) {
     this.host = host;
     this.address = address;
     this.details = details;
-    this.rent = rent;
+    this.listedRent = listedRent;
   }
 
   /**
@@ -59,8 +59,8 @@ public class House extends DamlRecord<House> {
       String host = PrimitiveValueDecoders.fromParty.decode(fields$.get(0).getValue());
       String address = PrimitiveValueDecoders.fromText.decode(fields$.get(1).getValue());
       String details = PrimitiveValueDecoders.fromText.decode(fields$.get(2).getValue());
-      Long rent = PrimitiveValueDecoders.fromInt64.decode(fields$.get(3).getValue());
-      return new House(host, address, details, rent);
+      Long listedRent = PrimitiveValueDecoders.fromInt64.decode(fields$.get(3).getValue());
+      return new House(host, address, details, listedRent);
     } ;
   }
 
@@ -69,17 +69,17 @@ public class House extends DamlRecord<House> {
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("host", new Party(this.host)));
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("address", new Text(this.address)));
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("details", new Text(this.details)));
-    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("rent", new Int64(this.rent)));
+    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("listedRent", new Int64(this.listedRent)));
     return new com.daml.ledger.javaapi.data.DamlRecord(fields);
   }
 
   public static JsonLfDecoder<House> jsonDecoder() {
-    return JsonLfDecoders.record(Arrays.asList("host", "address", "details", "rent"), name -> {
+    return JsonLfDecoders.record(Arrays.asList("host", "address", "details", "listedRent"), name -> {
           switch (name) {
             case "host": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
             case "address": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.text);
             case "details": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(2, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.text);
-            case "rent": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.int64);
+            case "listedRent": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.int64);
             default: return null;
           }
         }
@@ -95,7 +95,7 @@ public class House extends DamlRecord<House> {
         JsonLfEncoders.Field.of("host", apply(JsonLfEncoders::party, host)),
         JsonLfEncoders.Field.of("address", apply(JsonLfEncoders::text, address)),
         JsonLfEncoders.Field.of("details", apply(JsonLfEncoders::text, details)),
-        JsonLfEncoders.Field.of("rent", apply(JsonLfEncoders::int64, rent)));
+        JsonLfEncoders.Field.of("listedRent", apply(JsonLfEncoders::int64, listedRent)));
   }
 
   @Override
@@ -111,17 +111,18 @@ public class House extends DamlRecord<House> {
     }
     House other = (House) object;
     return Objects.equals(this.host, other.host) && Objects.equals(this.address, other.address) &&
-        Objects.equals(this.details, other.details) && Objects.equals(this.rent, other.rent);
+        Objects.equals(this.details, other.details) &&
+        Objects.equals(this.listedRent, other.listedRent);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.host, this.address, this.details, this.rent);
+    return Objects.hash(this.host, this.address, this.details, this.listedRent);
   }
 
   @Override
   public String toString() {
     return String.format("rentingPlatform.codegen.interface$.types.House(%s, %s, %s, %s)",
-        this.host, this.address, this.details, this.rent);
+        this.host, this.address, this.details, this.listedRent);
   }
 }

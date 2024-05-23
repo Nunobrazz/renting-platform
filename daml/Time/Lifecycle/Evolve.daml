@@ -3,20 +3,23 @@ module Time.Lifecycle.Evolve where
 
 import qualified DA.Set as S
 import DA.Foldable (forA_)
-import Interface.Types as Types ( LAkey(..), LAkeys) 
+
+import Platform.Types.LA 
+
 import Time.Clock (DateClockUpdateEvent(..))
 import Platform.LeaseAgreement.ModelLA
 
 
+-- Disapear
 template Evolve
   with
     operator : Party  
-    lifecycler : Party
+    lifecycler : Party 
     laKeys : LAkeys
   where 
     signatory operator
-    observer lifecycler 
-
+    observer lifecycler
+ 
     
     choice AddLA : ContractId Evolve 
       with
@@ -39,4 +42,3 @@ template Evolve
           do 
             exerciseByKey @LeaseAgreement laKey ProcessPayment with date = eventDate
           )
-          

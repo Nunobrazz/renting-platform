@@ -8,6 +8,7 @@ import com.daml.ledger.javaapi.data.CreateCommand;
 import com.daml.ledger.javaapi.data.CreatedEvent;
 import com.daml.ledger.javaapi.data.DamlRecord;
 import com.daml.ledger.javaapi.data.Date;
+import com.daml.ledger.javaapi.data.ExerciseByKeyCommand;
 import com.daml.ledger.javaapi.data.ExerciseCommand;
 import com.daml.ledger.javaapi.data.Identifier;
 import com.daml.ledger.javaapi.data.Party;
@@ -17,6 +18,7 @@ import com.daml.ledger.javaapi.data.Value;
 import com.daml.ledger.javaapi.data.codegen.Choice;
 import com.daml.ledger.javaapi.data.codegen.ContractCompanion;
 import com.daml.ledger.javaapi.data.codegen.ContractTypeCompanion;
+import com.daml.ledger.javaapi.data.codegen.ContractWithKey;
 import com.daml.ledger.javaapi.data.codegen.Created;
 import com.daml.ledger.javaapi.data.codegen.Exercised;
 import com.daml.ledger.javaapi.data.codegen.PrimitiveValueDecoders;
@@ -39,19 +41,23 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import rentingPlatform.codegen.da.set.types.Set;
+import rentingPlatform.codegen.da.types.Tuple2;
 
 public final class DateClockUpdateEvent extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("3ab0b0842cdffab8c416d02894ad44bcc570eeb048f996af3c2257fb08640ba3", "Time.Clock", "DateClockUpdateEvent");
+  public static final Identifier TEMPLATE_ID = new Identifier("0cf664e7a7bad84bfc31440cc4ea2b4c71a9a628dbeb0437bb65cac5ef779e5e", "Time.Clock", "DateClockUpdateEvent");
 
   public static final Choice<DateClockUpdateEvent, rentingPlatform.codegen.da.internal.template.Archive, Unit> CHOICE_Archive = 
       Choice.create("Archive", value$ -> value$.toValue(), value$ ->
         rentingPlatform.codegen.da.internal.template.Archive.valueDecoder().decode(value$),
         value$ -> PrimitiveValueDecoders.fromUnit.decode(value$));
 
-  public static final ContractCompanion.WithoutKey<Contract, ContractId, DateClockUpdateEvent> COMPANION = 
-      new ContractCompanion.WithoutKey<>("rentingPlatform.codegen.time.clock.DateClockUpdateEvent",
+  public static final ContractCompanion.WithKey<Contract, ContractId, DateClockUpdateEvent, Tuple2<String, LocalDate>> COMPANION = 
+      new ContractCompanion.WithKey<>("rentingPlatform.codegen.time.clock.DateClockUpdateEvent",
         TEMPLATE_ID, ContractId::new, v -> DateClockUpdateEvent.templateValueDecoder().decode(v),
-        DateClockUpdateEvent::fromJson, Contract::new, List.of(CHOICE_Archive));
+        DateClockUpdateEvent::fromJson, Contract::new, List.of(CHOICE_Archive),
+        e -> Tuple2.<java.lang.String,
+        java.time.LocalDate>valueDecoder(PrimitiveValueDecoders.fromParty,
+        PrimitiveValueDecoders.fromDate).decode(e));
 
   public final String provider;
 
@@ -68,6 +74,23 @@ public final class DateClockUpdateEvent extends Template {
   @Override
   public Update<Created<ContractId>> create() {
     return new Update.CreateUpdate<ContractId, Created<ContractId>>(new CreateCommand(DateClockUpdateEvent.TEMPLATE_ID, this.toValue()), x -> x, ContractId::new);
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseArchive} instead
+   */
+  @Deprecated
+  public static Update<Exercised<Unit>> exerciseByKeyArchive(Tuple2<String, LocalDate> key,
+      rentingPlatform.codegen.da.internal.template.Archive arg) {
+    return byKey(key).exerciseArchive(arg);
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseArchive()} instead
+   */
+  @Deprecated
+  public static Update<Exercised<Unit>> exerciseByKeyArchive(Tuple2<String, LocalDate> key) {
+    return byKey(key).exerciseArchive();
   }
 
   /**
@@ -98,7 +121,7 @@ public final class DateClockUpdateEvent extends Template {
   }
 
   @Override
-  protected ContractCompanion.WithoutKey<Contract, ContractId, DateClockUpdateEvent> getCompanion(
+  protected ContractCompanion.WithKey<Contract, ContractId, DateClockUpdateEvent, Tuple2<String, LocalDate>> getCompanion(
       ) {
     return COMPANION;
   }
@@ -191,6 +214,15 @@ public final class DateClockUpdateEvent extends Template {
         this.provider, this.eventDate, this.observers);
   }
 
+  /**
+   * Set up an {@link ExerciseByKeyCommand}; invoke an {@code exercise} method on the result of
+      this to finish creating the command, or convert to an interface first with {@code toInterface}
+      to invoke an interface {@code exercise} method.
+   */
+  public static ByKey byKey(Tuple2<String, LocalDate> key) {
+    return new ByKey(key.toValue(v$0 -> new Party(v$0), v$1 -> new Date((int) v$1.toEpochDay())));
+  }
+
   public static final class ContractId extends com.daml.ledger.javaapi.data.codegen.ContractId<DateClockUpdateEvent> implements Exercises<ExerciseCommand> {
     public ContractId(String contractId) {
       super(contractId);
@@ -208,10 +240,11 @@ public final class DateClockUpdateEvent extends Template {
     }
   }
 
-  public static class Contract extends com.daml.ledger.javaapi.data.codegen.Contract<ContractId, DateClockUpdateEvent> {
+  public static class Contract extends ContractWithKey<ContractId, DateClockUpdateEvent, Tuple2<String, LocalDate>> {
     public Contract(ContractId id, DateClockUpdateEvent data, Optional<String> agreementText,
-        java.util.Set<String> signatories, java.util.Set<String> observers) {
-      super(id, data, agreementText, signatories, observers);
+        Optional<Tuple2<String, LocalDate>> key, java.util.Set<String> signatories,
+        java.util.Set<String> observers) {
+      super(id, data, agreementText, key, signatories, observers);
     }
 
     @Override
@@ -220,9 +253,10 @@ public final class DateClockUpdateEvent extends Template {
     }
 
     public static Contract fromIdAndRecord(String contractId, DamlRecord record$,
-        Optional<String> agreementText, java.util.Set<String> signatories,
-        java.util.Set<String> observers) {
-      return COMPANION.fromIdAndRecord(contractId, record$, agreementText, signatories, observers);
+        Optional<String> agreementText, Optional<Tuple2<String, LocalDate>> key,
+        java.util.Set<String> signatories, java.util.Set<String> observers) {
+      return COMPANION.fromIdAndRecord(contractId, record$, agreementText, key, signatories,
+          observers);
     }
 
     public static Contract fromCreatedEvent(CreatedEvent event) {
@@ -244,6 +278,18 @@ public final class DateClockUpdateEvent extends Template {
   public static final class CreateAnd extends com.daml.ledger.javaapi.data.codegen.CreateAnd implements Exercises<CreateAndExerciseCommand> {
     CreateAnd(Template createArguments) {
       super(createArguments);
+    }
+
+    @Override
+    protected ContractTypeCompanion<? extends com.daml.ledger.javaapi.data.codegen.Contract<ContractId, ?>, ContractId, DateClockUpdateEvent, ?> getCompanion(
+        ) {
+      return COMPANION;
+    }
+  }
+
+  public static final class ByKey extends com.daml.ledger.javaapi.data.codegen.ByKey implements Exercises<ExerciseByKeyCommand> {
+    ByKey(Value key) {
+      super(key);
     }
 
     @Override

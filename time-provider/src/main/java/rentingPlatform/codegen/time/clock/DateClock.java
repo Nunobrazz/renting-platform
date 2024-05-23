@@ -41,28 +41,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import rentingPlatform.codegen.da.set.types.Set;
-import rentingPlatform.codegen.da.types.Tuple2;
 
 public final class DateClock extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("3ab0b0842cdffab8c416d02894ad44bcc570eeb048f996af3c2257fb08640ba3", "Time.Clock", "DateClock");
+  public static final Identifier TEMPLATE_ID = new Identifier("0cf664e7a7bad84bfc31440cc4ea2b4c71a9a628dbeb0437bb65cac5ef779e5e", "Time.Clock", "DateClock");
 
-  public static final Choice<DateClock, Advance, Tuple2<ContractId, DateClockUpdateEvent.ContractId>> CHOICE_Advance = 
+  public static final Choice<DateClock, Advance, ContractId> CHOICE_Advance = 
       Choice.create("Advance", value$ -> value$.toValue(), value$ -> Advance.valueDecoder()
-        .decode(value$), value$ -> Tuple2.<rentingPlatform.codegen.time.clock.DateClock.ContractId,
-        rentingPlatform.codegen.time.clock.DateClockUpdateEvent.ContractId>valueDecoder(v$0 ->
-          new ContractId(v$0.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()),
-        v$1 ->
-          new DateClockUpdateEvent.ContractId(v$1.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()))
-        .decode(value$));
-
-  public static final Choice<DateClock, Rewind, Tuple2<ContractId, DateClockUpdateEvent.ContractId>> CHOICE_Rewind = 
-      Choice.create("Rewind", value$ -> value$.toValue(), value$ -> Rewind.valueDecoder()
-        .decode(value$), value$ -> Tuple2.<rentingPlatform.codegen.time.clock.DateClock.ContractId,
-        rentingPlatform.codegen.time.clock.DateClockUpdateEvent.ContractId>valueDecoder(v$0 ->
-          new ContractId(v$0.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()),
-        v$1 ->
-          new DateClockUpdateEvent.ContractId(v$1.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()))
-        .decode(value$));
+        .decode(value$), value$ ->
+        new ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
 
   public static final Choice<DateClock, rentingPlatform.codegen.da.internal.template.Archive, Unit> CHOICE_Archive = 
       Choice.create("Archive", value$ -> value$.toValue(), value$ ->
@@ -72,7 +58,7 @@ public final class DateClock extends Template {
   public static final ContractCompanion.WithoutKey<Contract, ContractId, DateClock> COMPANION = 
       new ContractCompanion.WithoutKey<>("rentingPlatform.codegen.time.clock.DateClock",
         TEMPLATE_ID, ContractId::new, v -> DateClock.templateValueDecoder().decode(v),
-        DateClock::fromJson, Contract::new, List.of(CHOICE_Advance, CHOICE_Rewind, CHOICE_Archive));
+        DateClock::fromJson, Contract::new, List.of(CHOICE_Advance, CHOICE_Archive));
 
   public final String provider;
 
@@ -99,8 +85,7 @@ public final class DateClock extends Template {
    * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseAdvance} instead
    */
   @Deprecated
-  public Update<Exercised<Tuple2<ContractId, DateClockUpdateEvent.ContractId>>> createAndExerciseAdvance(
-      Advance arg) {
+  public Update<Exercised<ContractId>> createAndExerciseAdvance(Advance arg) {
     return createAnd().exerciseAdvance(arg);
   }
 
@@ -108,27 +93,8 @@ public final class DateClock extends Template {
    * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseAdvance} instead
    */
   @Deprecated
-  public Update<Exercised<Tuple2<ContractId, DateClockUpdateEvent.ContractId>>> createAndExerciseAdvance(
-      Long days) {
+  public Update<Exercised<ContractId>> createAndExerciseAdvance(Long days) {
     return createAndExerciseAdvance(new Advance(days));
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseRewind} instead
-   */
-  @Deprecated
-  public Update<Exercised<Tuple2<ContractId, DateClockUpdateEvent.ContractId>>> createAndExerciseRewind(
-      Rewind arg) {
-    return createAnd().exerciseRewind(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseRewind} instead
-   */
-  @Deprecated
-  public Update<Exercised<Tuple2<ContractId, DateClockUpdateEvent.ContractId>>> createAndExerciseRewind(
-      Long days) {
-    return createAndExerciseRewind(new Rewind(days));
   }
 
   /**
@@ -295,24 +261,12 @@ public final class DateClock extends Template {
   }
 
   public interface Exercises<Cmd> extends com.daml.ledger.javaapi.data.codegen.Exercises.Archive<Cmd> {
-    default Update<Exercised<Tuple2<ContractId, DateClockUpdateEvent.ContractId>>> exerciseAdvance(
-        Advance arg) {
+    default Update<Exercised<ContractId>> exerciseAdvance(Advance arg) {
       return makeExerciseCmd(CHOICE_Advance, arg);
     }
 
-    default Update<Exercised<Tuple2<ContractId, DateClockUpdateEvent.ContractId>>> exerciseAdvance(
-        Long days) {
+    default Update<Exercised<ContractId>> exerciseAdvance(Long days) {
       return exerciseAdvance(new Advance(days));
-    }
-
-    default Update<Exercised<Tuple2<ContractId, DateClockUpdateEvent.ContractId>>> exerciseRewind(
-        Rewind arg) {
-      return makeExerciseCmd(CHOICE_Rewind, arg);
-    }
-
-    default Update<Exercised<Tuple2<ContractId, DateClockUpdateEvent.ContractId>>> exerciseRewind(
-        Long days) {
-      return exerciseRewind(new Rewind(days));
     }
 
     default Update<Exercised<Unit>> exerciseArchive(

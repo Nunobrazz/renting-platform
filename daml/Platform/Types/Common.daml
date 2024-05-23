@@ -1,0 +1,19 @@
+module Platform.Types.Common where
+
+
+data House=House 
+  with
+    host: Party         -- Owner of the house
+    address: Text       -- House address
+    details: Text       -- House Details
+    listedRent : Int          -- House rent
+  deriving (Eq, Ord, Show)
+
+
+data LeaseTerms=LeaseTerms 
+  with
+    agreedRent : Int            -- Counter Offer of the rent
+    beginingDate: Date    -- First day of rent
+    paymentDates: [Date]  -- When will the payments be made
+    nArbitrators : Int
+  deriving (Eq, Show)

@@ -92,7 +92,7 @@
                             <goal>java</goal>
                         </goals>
                         <configuration>
-                            <mainClass>rentingPlatform.TimeProvider</mainClass>
+                            <mainClass>rentingPlatform.time.TimeProvider</mainClass>
                           <!-- <arguments>
                                 <argument>${ledgerhost}</argument>
                                 <argument>${ledgerport}</argument>

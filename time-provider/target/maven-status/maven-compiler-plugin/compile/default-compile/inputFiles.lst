@@ -22,7 +22,6 @@
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/interface$/types/House.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/leaseagreement/modella/LeaseAgreement.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/user/Change.java
-/Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/LedgerCommunication.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/leaseagreement/service/Service.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/time/lifecycle/iou/Iou.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/leaseagreement/arbitratorsservice/FinalizeVotation.java
@@ -32,7 +31,6 @@
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/interface$/signature/Sign.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/leaseagreement/arbitratorsservice/Offer.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/role/operator/ApproveProposalServiceRequest.java
-/Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/TimeProvider.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/leaseagreement/modelmi/FinalizeInvitation.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/role/admin/Offer.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/proposal/service/AcceptProposal.java
@@ -49,6 +47,7 @@
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/leaseagreement/arbitratorsservice/Approve.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/leaseagreement/arbitratorsservice/Reject.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/da/internal/template/Archive.java
+/Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/time/TimeProvider.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/leaseagreement/arbitratorsservice/SubmitVote.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/proposal/model/Sign.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/time/clock/DateClockUpdateEvent.java
@@ -69,8 +68,8 @@
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/interface$/signature/ISignature.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/role/admin/Accept.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/proposal/service/Reject.java
+/Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/time/LedgerCommunication.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/leaseagreement/modelmi/MI.java
-/Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/clock/Clock.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/proposal/model/Proposal.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/interface$/types/MIkey.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/interface$/types/LAkey.java
@@ -78,7 +77,6 @@
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/leaseagreement/arbitratorsservice/Accept.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/role/admin/Role.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/da/types/Tuple2.java
-/Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/clock/Schedule.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/role/operator/ApproveLeaseAgreementService.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/role/operator/ApproveArbitratorService.java
 /Users/nunobrazz/tecnico/meic/tese/rentingPlatform/time-provider/src/main/java/rentingPlatform/codegen/platform/proposal/service/DeleteProposal.java

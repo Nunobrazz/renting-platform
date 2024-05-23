@@ -3,24 +3,53 @@ module Main where
 
 import Test.LAcreation 
 import Daml.Script
+import DA.Date
+import Platform.Types.LA 
+import Platform.Types.MI
+import Platform.LeaseAgreement.Service qualified as LA (CreateMI(..))
 
-
-initialize : Script Party
+initialize : Script (Party, Party,Party)
 initialize = do
 
-  (parties, contracts, house, leaseTerms) <- laCreation
-  
+  (parties, contracts, house, _) <- laCreation
+  let 
+      laKey = LAkey with tenant = parties.bob; house 
+      miDetails = MIdetails with reporter=parties.bob; counterpart=parties.alice; house; startingDate = date 2024 May 19; description = "Broken chair"; nArbitrators=1
+
+
+  -- Bob creates MI  Should be bob or host inviting arbitrators
+  miCid <- submit parties.bob do 
+    exerciseCmd contracts.laServiceCid LA.CreateMI with miDetails
+
+
   aliceId <- validateUserId "alice"
   bobId <- validateUserId "bob"
   operatorId <- validateUserId "operator"
   timeProviderId <- validateUserId "timeProvider"
+  arbitrator1Id <- validateUserId "Arbitrator1" --genearl arbitrarator party too
 
   createUser (User aliceId (Some parties.alice)) [CanActAs parties.alice]
   createUser (User bobId (Some parties.bob)) [CanActAs parties.bob]
   createUser (User operatorId (Some parties.operator)) [CanActAs parties.operator]
   createUser (User timeProviderId (Some parties.timeProvider)) [CanActAs parties.timeProvider]
+  createUser (User arbitrator1Id (Some parties.arbitrator1)) [CanActAs parties.arbitrator1]
+  
   
 
+{--  passTime (T.days 1)
 
-  pure parties.timeProvider
+  clockCid<- submit parties.timeProvider do
+    exerciseCmd contracts.clockCid Advance with days=1
+
+  passTime (T.days 1)
+
+  clockCid <- submit parties.timeProvider do
+    exerciseCmd clockCid Advance with days=1
+ 
+  passTime (T.days 1) -- how is time passed on the ledger
+
+  clockCid <- submit parties.timeProvider do
+    exerciseCmd clockCid Advance with days=1--}
+
+  pure (parties.timeProvider, parties.arbitrator1, parties.operator)
 
