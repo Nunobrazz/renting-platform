@@ -41,7 +41,7 @@ import rentingPlatform.codegen.platform.types.la.LAkey;
 import rentingPlatform.codegen.time.clock.DateClockUpdateEvent;
 
 public final class Evolve extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("b80ed0eb60b6c3d918d4f24fbb5689a03c7ad2642b523a689de07104f792b41f", "Time.Lifecycle.Evolve", "Evolve");
+  public static final Identifier TEMPLATE_ID = new Identifier("b1c69ded5e6f9b3209adda4613b08585e35d988f49cc818e5af8942f840887f7", "Time.Lifecycle.Evolve", "Evolve");
 
   public static final Choice<Evolve, AddLA, ContractId> CHOICE_AddLA = 
       Choice.create("AddLA", value$ -> value$.toValue(), value$ -> AddLA.valueDecoder()

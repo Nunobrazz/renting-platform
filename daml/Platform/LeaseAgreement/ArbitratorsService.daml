@@ -1,8 +1,8 @@
 module Platform.LeaseAgreement.ArbitratorsService where
-
+{-- 
 import qualified DA.Set as S
 import Platform.Types.MI 
-import Platform.LeaseAgreement.ModelMI qualified as MImodel (MI(..), Votation(..), Vote(..), FinalizeVotation(..))
+import Platform.LeaseAgreement.ModelMI
 
 
 template Service
@@ -17,14 +17,14 @@ template Service
  
 
 ---- BEGIN ---- ARBITRATORS VOTATION
-    nonconsuming choice CreateVotation : ContractId MImodel.Votation
+    nonconsuming choice CreateVotation : ContractId Votation
       with 
         description : Text
-        miCid : ContractId MImodel.MI     
+        miCid : ContractId MI     
         assessment : AssessmentDetails
       controller arbitrator
       do
-        MImodel.MI{arbitrators, miDetails} <- fetch miCid -- This fetch may be dispensible 
+        MI{arbitrators, miDetails} <- fetch miCid -- This fetch may be dispensible 
         let 
           responsability = (Responsability with 
                               reporterResp=(assessment.responsability.reporterResp/miDetails.nArbitrators), 
@@ -32,24 +32,24 @@ template Service
 
           result = AssessmentDetails with responsability, cost=assessment.cost, assessmentDate=assessment.assessmentDate, reparationDate=assessment.reparationDate 
         
-        create MImodel.Votation with creator=arbitrator; description; voters=arbitrators; miCid; alreadyVoted = S.fromList [arbitrator]; result
+        create Votation with creator=arbitrator; description; voters=arbitrators; miCid; alreadyVoted = S.fromList [arbitrator]; result
 
 
-    nonconsuming choice SubmitVote : ContractId MImodel.Votation
+    nonconsuming choice SubmitVote : ContractId Votation
       with 
         vote : Responsability
-        votationCid : ContractId MImodel.Votation
+        votationCid : ContractId Votation
       controller arbitrator
       do
-        exercise votationCid MImodel.Vote with voter = arbitrator; vote
+        exercise votationCid Vote with voter = arbitrator; vote
 
 
-    nonconsuming choice FinalizeVotation : ContractId MImodel.MI
+    nonconsuming choice FinalizeVotation : ContractId MI
       with 
-        votationCid : ContractId MImodel.Votation
+        votationCid : ContractId Votation
       controller arbitrator
       do
-        exercise votationCid MImodel.FinalizeVotation with finalizer= arbitrator
+        exercise votationCid FinalizeVotation with finalizer= arbitrator
 
     
 ---- END ---- ARBITRATORS VOTATION
@@ -97,4 +97,4 @@ template Request
     choice Reject : ()
       controller operator
       do
-        return ()
+        return ()--}

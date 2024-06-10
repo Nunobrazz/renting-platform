@@ -36,85 +36,48 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import rentingPlatform.codegen.da.set.types.Set;
+import java.util.Set;
 import rentingPlatform.codegen.platform.types.mi.AssessmentDetails;
+import rentingPlatform.codegen.platform.types.mi.MIdetails;
 
 public final class Assessment extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("b80ed0eb60b6c3d918d4f24fbb5689a03c7ad2642b523a689de07104f792b41f", "Platform.LeaseAgreement.ModelMI", "Assessment");
-
-  public static final Choice<Assessment, Sign, ContractId> CHOICE_Sign = 
-      Choice.create("Sign", value$ -> value$.toValue(), value$ -> Sign.valueDecoder()
-        .decode(value$), value$ ->
-        new ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
-
-  public static final Choice<Assessment, FinalizeAssessment, MI.ContractId> CHOICE_FinalizeAssessment = 
-      Choice.create("FinalizeAssessment", value$ -> value$.toValue(), value$ ->
-        FinalizeAssessment.valueDecoder().decode(value$), value$ ->
-        new MI.ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
+  public static final Identifier TEMPLATE_ID = new Identifier("b1c69ded5e6f9b3209adda4613b08585e35d988f49cc818e5af8942f840887f7", "Platform.LeaseAgreement.ModelMI", "Assessment");
 
   public static final Choice<Assessment, rentingPlatform.codegen.da.internal.template.Archive, Unit> CHOICE_Archive = 
       Choice.create("Archive", value$ -> value$.toValue(), value$ ->
         rentingPlatform.codegen.da.internal.template.Archive.valueDecoder().decode(value$),
         value$ -> PrimitiveValueDecoders.fromUnit.decode(value$));
 
+  public static final Choice<Assessment, SignAssessment, MIresultFriendly.ContractId> CHOICE_SignAssessment = 
+      Choice.create("SignAssessment", value$ -> value$.toValue(), value$ ->
+        SignAssessment.valueDecoder().decode(value$), value$ ->
+        new MIresultFriendly.ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
+
   public static final ContractCompanion.WithoutKey<Contract, ContractId, Assessment> COMPANION = 
       new ContractCompanion.WithoutKey<>(
         "rentingPlatform.codegen.platform.leaseagreement.modelmi.Assessment", TEMPLATE_ID,
         ContractId::new, v -> Assessment.templateValueDecoder().decode(v), Assessment::fromJson,
-        Contract::new, List.of(CHOICE_Sign, CHOICE_FinalizeAssessment, CHOICE_Archive));
+        Contract::new, List.of(CHOICE_Archive, CHOICE_SignAssessment));
 
-  public final Set<String> approvers;
+  public final String creator;
 
-  public final AssessmentDetails assessmentDetails;
+  public final String signer;
 
-  public final MI.ContractId miCid;
+  public final AssessmentDetails assessment;
 
-  public final Set<String> alreadySigned;
+  public final MIdetails miDetails;
 
-  public Assessment(Set<String> approvers, AssessmentDetails assessmentDetails, MI.ContractId miCid,
-      Set<String> alreadySigned) {
-    this.approvers = approvers;
-    this.assessmentDetails = assessmentDetails;
-    this.miCid = miCid;
-    this.alreadySigned = alreadySigned;
+  public Assessment(String creator, String signer, AssessmentDetails assessment,
+      MIdetails miDetails) {
+    this.creator = creator;
+    this.signer = signer;
+    this.assessment = assessment;
+    this.miDetails = miDetails;
   }
 
   @Override
   public Update<Created<ContractId>> create() {
     return new Update.CreateUpdate<ContractId, Created<ContractId>>(new CreateCommand(Assessment.TEMPLATE_ID, this.toValue()), x -> x, ContractId::new);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseSign} instead
-   */
-  @Deprecated
-  public Update<Exercised<ContractId>> createAndExerciseSign(Sign arg) {
-    return createAnd().exerciseSign(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseSign} instead
-   */
-  @Deprecated
-  public Update<Exercised<ContractId>> createAndExerciseSign(String signer) {
-    return createAndExerciseSign(new Sign(signer));
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseFinalizeAssessment} instead
-   */
-  @Deprecated
-  public Update<Exercised<MI.ContractId>> createAndExerciseFinalizeAssessment(
-      FinalizeAssessment arg) {
-    return createAnd().exerciseFinalizeAssessment(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseFinalizeAssessment} instead
-   */
-  @Deprecated
-  public Update<Exercised<MI.ContractId>> createAndExerciseFinalizeAssessment(String finalizer) {
-    return createAndExerciseFinalizeAssessment(new FinalizeAssessment(finalizer));
   }
 
   /**
@@ -134,9 +97,27 @@ public final class Assessment extends Template {
     return createAndExerciseArchive(new rentingPlatform.codegen.da.internal.template.Archive());
   }
 
-  public static Update<Created<ContractId>> create(Set<String> approvers,
-      AssessmentDetails assessmentDetails, MI.ContractId miCid, Set<String> alreadySigned) {
-    return new Assessment(approvers, assessmentDetails, miCid, alreadySigned).create();
+  /**
+   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseSignAssessment} instead
+   */
+  @Deprecated
+  public Update<Exercised<MIresultFriendly.ContractId>> createAndExerciseSignAssessment(
+      SignAssessment arg) {
+    return createAnd().exerciseSignAssessment(arg);
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseSignAssessment} instead
+   */
+  @Deprecated
+  public Update<Exercised<MIresultFriendly.ContractId>> createAndExerciseSignAssessment(
+      String signer) {
+    return createAndExerciseSignAssessment(new SignAssessment(signer));
+  }
+
+  public static Update<Created<ContractId>> create(String creator, String signer,
+      AssessmentDetails assessment, MIdetails miDetails) {
+    return new Assessment(creator, signer, assessment, miDetails).create();
   }
 
   @Override
@@ -163,10 +144,10 @@ public final class Assessment extends Template {
 
   public DamlRecord toValue() {
     ArrayList<DamlRecord.Field> fields = new ArrayList<DamlRecord.Field>(4);
-    fields.add(new DamlRecord.Field("approvers", this.approvers.toValue(v$0 -> new Party(v$0))));
-    fields.add(new DamlRecord.Field("assessmentDetails", this.assessmentDetails.toValue()));
-    fields.add(new DamlRecord.Field("miCid", this.miCid.toValue()));
-    fields.add(new DamlRecord.Field("alreadySigned", this.alreadySigned.toValue(v$0 -> new Party(v$0))));
+    fields.add(new DamlRecord.Field("creator", new Party(this.creator)));
+    fields.add(new DamlRecord.Field("signer", new Party(this.signer)));
+    fields.add(new DamlRecord.Field("assessment", this.assessment.toValue()));
+    fields.add(new DamlRecord.Field("miDetails", this.miDetails.toValue()));
     return new DamlRecord(fields);
   }
 
@@ -174,26 +155,22 @@ public final class Assessment extends Template {
     return value$ -> {
       Value recordValue$ = value$;
       List<DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(4,0, recordValue$);
-      Set<String> approvers = Set.<java.lang.String>valueDecoder(PrimitiveValueDecoders.fromParty)
-          .decode(fields$.get(0).getValue());
-      AssessmentDetails assessmentDetails = AssessmentDetails.valueDecoder()
-          .decode(fields$.get(1).getValue());
-      MI.ContractId miCid =
-          new MI.ContractId(fields$.get(2).getValue().asContractId().orElseThrow(() -> new IllegalArgumentException("Expected miCid to be of type com.daml.ledger.javaapi.data.ContractId")).getValue());
-      Set<String> alreadySigned =
-          Set.<java.lang.String>valueDecoder(PrimitiveValueDecoders.fromParty)
-          .decode(fields$.get(3).getValue());
-      return new Assessment(approvers, assessmentDetails, miCid, alreadySigned);
+      String creator = PrimitiveValueDecoders.fromParty.decode(fields$.get(0).getValue());
+      String signer = PrimitiveValueDecoders.fromParty.decode(fields$.get(1).getValue());
+      AssessmentDetails assessment = AssessmentDetails.valueDecoder()
+          .decode(fields$.get(2).getValue());
+      MIdetails miDetails = MIdetails.valueDecoder().decode(fields$.get(3).getValue());
+      return new Assessment(creator, signer, assessment, miDetails);
     } ;
   }
 
   public static JsonLfDecoder<Assessment> jsonDecoder() {
-    return JsonLfDecoders.record(Arrays.asList("approvers", "assessmentDetails", "miCid", "alreadySigned"), name -> {
+    return JsonLfDecoders.record(Arrays.asList("creator", "signer", "assessment", "miDetails"), name -> {
           switch (name) {
-            case "approvers": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
-            case "assessmentDetails": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, rentingPlatform.codegen.platform.types.mi.AssessmentDetails.jsonDecoder());
-            case "miCid": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(2, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.contractId(rentingPlatform.codegen.platform.leaseagreement.modelmi.MI.ContractId::new));
-            case "alreadySigned": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
+            case "creator": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
+            case "signer": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
+            case "assessment": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(2, rentingPlatform.codegen.platform.types.mi.AssessmentDetails.jsonDecoder());
+            case "miDetails": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, rentingPlatform.codegen.platform.types.mi.MIdetails.jsonDecoder());
             default: return null;
           }
         }
@@ -206,10 +183,10 @@ public final class Assessment extends Template {
 
   public JsonLfEncoder jsonEncoder() {
     return JsonLfEncoders.record(
-        JsonLfEncoders.Field.of("approvers", apply(_x0 -> _x0.jsonEncoder(JsonLfEncoders::party), approvers)),
-        JsonLfEncoders.Field.of("assessmentDetails", apply(AssessmentDetails::jsonEncoder, assessmentDetails)),
-        JsonLfEncoders.Field.of("miCid", apply(JsonLfEncoders::contractId, miCid)),
-        JsonLfEncoders.Field.of("alreadySigned", apply(_x0 -> _x0.jsonEncoder(JsonLfEncoders::party), alreadySigned)));
+        JsonLfEncoders.Field.of("creator", apply(JsonLfEncoders::party, creator)),
+        JsonLfEncoders.Field.of("signer", apply(JsonLfEncoders::party, signer)),
+        JsonLfEncoders.Field.of("assessment", apply(AssessmentDetails::jsonEncoder, assessment)),
+        JsonLfEncoders.Field.of("miDetails", apply(MIdetails::jsonEncoder, miDetails)));
   }
 
   public static ContractFilter<Contract> contractFilter() {
@@ -228,21 +205,21 @@ public final class Assessment extends Template {
       return false;
     }
     Assessment other = (Assessment) object;
-    return Objects.equals(this.approvers, other.approvers) &&
-        Objects.equals(this.assessmentDetails, other.assessmentDetails) &&
-        Objects.equals(this.miCid, other.miCid) &&
-        Objects.equals(this.alreadySigned, other.alreadySigned);
+    return Objects.equals(this.creator, other.creator) &&
+        Objects.equals(this.signer, other.signer) &&
+        Objects.equals(this.assessment, other.assessment) &&
+        Objects.equals(this.miDetails, other.miDetails);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.approvers, this.assessmentDetails, this.miCid, this.alreadySigned);
+    return Objects.hash(this.creator, this.signer, this.assessment, this.miDetails);
   }
 
   @Override
   public String toString() {
     return String.format("rentingPlatform.codegen.platform.leaseagreement.modelmi.Assessment(%s, %s, %s, %s)",
-        this.approvers, this.assessmentDetails, this.miCid, this.alreadySigned);
+        this.creator, this.signer, this.assessment, this.miDetails);
   }
 
   public static final class ContractId extends com.daml.ledger.javaapi.data.codegen.ContractId<Assessment> implements Exercises<ExerciseCommand> {
@@ -264,7 +241,7 @@ public final class Assessment extends Template {
 
   public static class Contract extends com.daml.ledger.javaapi.data.codegen.Contract<ContractId, Assessment> {
     public Contract(ContractId id, Assessment data, Optional<String> agreementText,
-        java.util.Set<String> signatories, java.util.Set<String> observers) {
+        Set<String> signatories, Set<String> observers) {
       super(id, data, agreementText, signatories, observers);
     }
 
@@ -274,8 +251,7 @@ public final class Assessment extends Template {
     }
 
     public static Contract fromIdAndRecord(String contractId, DamlRecord record$,
-        Optional<String> agreementText, java.util.Set<String> signatories,
-        java.util.Set<String> observers) {
+        Optional<String> agreementText, Set<String> signatories, Set<String> observers) {
       return COMPANION.fromIdAndRecord(contractId, record$, agreementText, signatories, observers);
     }
 
@@ -285,22 +261,6 @@ public final class Assessment extends Template {
   }
 
   public interface Exercises<Cmd> extends com.daml.ledger.javaapi.data.codegen.Exercises.Archive<Cmd> {
-    default Update<Exercised<ContractId>> exerciseSign(Sign arg) {
-      return makeExerciseCmd(CHOICE_Sign, arg);
-    }
-
-    default Update<Exercised<ContractId>> exerciseSign(String signer) {
-      return exerciseSign(new Sign(signer));
-    }
-
-    default Update<Exercised<MI.ContractId>> exerciseFinalizeAssessment(FinalizeAssessment arg) {
-      return makeExerciseCmd(CHOICE_FinalizeAssessment, arg);
-    }
-
-    default Update<Exercised<MI.ContractId>> exerciseFinalizeAssessment(String finalizer) {
-      return exerciseFinalizeAssessment(new FinalizeAssessment(finalizer));
-    }
-
     default Update<Exercised<Unit>> exerciseArchive(
         rentingPlatform.codegen.da.internal.template.Archive arg) {
       return makeExerciseCmd(CHOICE_Archive, arg);
@@ -308,6 +268,15 @@ public final class Assessment extends Template {
 
     default Update<Exercised<Unit>> exerciseArchive() {
       return exerciseArchive(new rentingPlatform.codegen.da.internal.template.Archive());
+    }
+
+    default Update<Exercised<MIresultFriendly.ContractId>> exerciseSignAssessment(
+        SignAssessment arg) {
+      return makeExerciseCmd(CHOICE_SignAssessment, arg);
+    }
+
+    default Update<Exercised<MIresultFriendly.ContractId>> exerciseSignAssessment(String signer) {
+      return exerciseSignAssessment(new SignAssessment(signer));
     }
   }
 

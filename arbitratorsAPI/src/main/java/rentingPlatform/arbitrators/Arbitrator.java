@@ -25,30 +25,30 @@ public class Arbitrator {
 
     // Extract host and port from arguments
     if (args.length < 4) { //it will need the party arbitroator
-      System.err.println("Usage: LEDGER_HOST LEDGER_PORT ARBITRATOR_PARTY OPERATOR_PARTY");
+      System.err.println("Usage: LEDGER_HOST LEDGER_PORT INDIVIDUAL_PARTY OPERATOR_PARTY");
       System.exit(-1);
     }
     
     String ledgerhost = args[0];
     int ledgerApiPort = Integer.valueOf(args[1]);
-    String arbitratorParty = args[2];
+    String individualParty = args[2];
     String operatorParty = args[3];
 
-    debug("Runing as party: {}", arbitratorParty );
+    debug("Runing as party: {}", individualParty );
     debug("Operator running with party-id: {}", operatorParty );
 
-    ledger = new LedgerCommunication(ledgerhost, ledgerApiPort, arbitratorParty, operatorParty);
+    ledger = new LedgerCommunication(ledgerhost, ledgerApiPort, individualParty, operatorParty);
     
-    ledger.joinService();
-    ledger.probeInvitations();
 
+    ledger.getInvitationsCurrentState();    
+    ledger.probeInvitations();
     
     while (true) {
       io.displayMenu();
       System.out.printf("> Select Option: "); 
       long option = sc.nextInt();
       if (option == 1){
-        ledger.searchMI();
+        ledger.searchInvitations();
       }
       else if (option == 2){
         ledger.createVotation();

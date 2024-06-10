@@ -30,6 +30,7 @@ laCreation = script do
         bob = parties.bob                
         admin = parties.admin            
         timeProvider = parties.timeProvider
+        arbitrator = parties.arbitrator
 
         operatorRoleCid = oldContracts.operatorRoleCid
         clockCid = oldContracts.clockCid
@@ -61,7 +62,7 @@ laCreation = script do
     
     -- Operator Approves bob request for the Lease Agreemnet
     laServiceCid <- submit operator do
-        exerciseCmd operatorRoleCid Operator.ApproveLeaseAgreementService with laServiceReqCid=bobLAreqCid; lifecycler=timeProvider
+        exerciseCmd operatorRoleCid Operator.ApproveLeaseAgreementService with laServiceReqCid=bobLAreqCid; lifecycler=timeProvider; arbitrator
 
 
     let contracts = Contracts with operatorRoleCid; laServiceCid; clockCid; evolveCid

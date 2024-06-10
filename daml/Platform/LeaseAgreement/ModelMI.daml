@@ -4,116 +4,100 @@ import DA.Set qualified as S
 import Types.Common
 import Platform.Types.MI 
 
-template MI 
+template MIReport 
   with
-    operator : Party
-    reporter : Party
-    counterpart : Party
+    tenant : Party
+    host : Party
     miDetails: MIdetails -- nabritrators bigger then 0
     arbitrators : Parties
-    assessment : Optional AssessmentDetails
-    ---votationKey : Optional (ContractId Votation)
   where
-    signatory reporter
-    observer reporter, counterpart, arbitrators, operator
+    signatory tenant, host 
+    observer arbitrators
 
-    key (reporter, miDetails) : (Party, MIdetails)
+    key (tenant, host, miDetails) : (Party, Party ,MIdetails)
     maintainer key._1 
 
-    choice SetArbitrators : ContractId MI
+    choice SetArbitrators : ContractId MIReport
       with 
+        inviter : Party
         arbitrators : Parties
-      controller operator
+      controller inviter
       do 
         create this with arbitrators 
     
-    choice SetAssessment : ContractId MI
+    choice CreateVotation : ContractId Votation
       with 
-        arbitrator : Party
+        visitor : Party
+        visitDetails : Text
         assessment : AssessmentDetails
-      controller arbitrator
+      controller visitor
       do 
-        create this with assessment = Some assessment
+        let 
+          responsability = (Responsability with 
+                              reporterResp=(assessment.responsability.reporterResp/miDetails.nArbitrators), 
+                                counterpartResp=assessment.responsability.counterpartResp/miDetails.nArbitrators) 
+
+          result = AssessmentDetails with responsability, cost=assessment.cost, assessmentDate=assessment.assessmentDate, reparationDate=assessment.reparationDate 
+          
+        create Votation with tenant, host, miDetails; visitor; visitDetails; voters=arbitrators; miReportCid=self; alreadyVoted = S.fromList [visitor]; result
 
 
-
-
-
-template InviteArbitrators    
+template InviteArbitrators     -- arbitrators recieve notifications when others accept
   with
     inviter : Party 
-    invited : Parties
-    miDetails : MIdetails
+    invited : Parties       -- Universal arbitrator party doesnt work because if n ot any party could enroll other arbitrators
     confirmed : Parties
-    miCid : ContractId MI
-    visitor : Optional Party
+    miDetails : MIdetails
+    miReportCid : ContractId MIReport
   where
-    signatory inviter
+    signatory inviter, confirmed
     observer invited
-
-
-    nonconsuming choice AcceptAndVisitor : ()
-      with 
-        arbitrator : Party
-      controller arbitrator
-      do
-      --  assertMsg "The Party is already confirmed in the MI." (S.notMember arbitrator confirmed)
-      --  assertMsg "Impossible to accept because the number of arbitrators has been matched." (S.size confirmed < miDetails.nArbitrators)
-        --Votation{voters}<- fetchByKey @Votation votationKey 
-        if S.size confirmed == miDetails.nArbitrators then do
-          archive self
-        else if visitor == None then do
-          create this with confirmed = S.insert arbitrator confirmed; visitor = Some arbitrator
-          pure()
-        else do -- assim da para apagar votos
-          create this with confirmed = S.insert arbitrator confirmed
-          pure()
 
     choice Accept : ()
       with 
         arbitrator : Party
-      controller arbitrator
+      controller invited
       do
-      --  assertMsg "The Party is already confirmed in the MI." (S.notMember arbitrator confirmed)
-      --  assertMsg "Impossible to accept because the number of arbitrators has been matched." (S.size confirmed < miDetails.nArbitrators)
-        if S.size confirmed == (miDetails.nArbitrators-1) && visitor == None then do 
-          create this with confirmed = S.insert arbitrator confirmed; visitor = Some arbitrator
-          pure()
-        else if S.size confirmed == miDetails.nArbitrators then do  -- this is assert
-          -- create Votation with visitor=visitor; visitDetails=None; voters=confirmed; alreadyVoted=S.empty; result = None
-          archive self
-        else do 
-          create this with confirmed = S.insert arbitrator confirmed; visitor = Some arbitrator
-          pure()
+        assertMsg "The Party is already confirmed in the MI." (S.notMember arbitrator confirmed)
+        assertMsg "Impossible to accept because the number of arbitrators has been matched." (S.size confirmed < miDetails.nArbitrators)
+
+        create this with confirmed = S.insert arbitrator confirmed
+        pure()
     
-    choice FinishInvitation : ContractId MI -- create votation and add votation key to mi
-      exercise miCid SetArbitrators with confirmed
+    choice ConfirmAttribution : ContractId MIReport
+      with 
+        inviter : Party
+      controller inviter
+      do
+        assertMsg "The expected number of arbitrators has not been reached." (S.size confirmed == miDetails.nArbitrators)
+
+        exercise miReportCid SetArbitrators with inviter; arbitrators=confirmed
+
+
 
 -- before they are allowed to vote the voters must be full
 template Votation
   with 
-    visitor : Optional Party -- can have several
-    visitDetails : Optional Text
+    tenant : Party
+    host : Party
+    miDetails : MIdetails
+    visitor : Party -- can have several
+    visitDetails : Text
     voters : Parties  
-    --miCid : ContractId MI
+    miReportCid : ContractId MIReport
     alreadyVoted : Parties
-    result : Optional AssessmentDetails
+    result : AssessmentDetails
   where 
-    signatory alreadyVoted
+    signatory alreadyVoted, tenant, host -- Both MI parts agree with the votation
     observer  voters
     
 
-    -- can only exist one votation per MI
-    
-    
     choice Vote : ContractId Votation 
       with
         voter : Party
         vote : Responsability
       controller voter
         do
-          -- Check the controller is in the toSign set, and if they are, sign the Pending contract
-          -- vote should be just the responsabilities
           assert (S.member voter (toVote this))
           let newReporterResp = result.responsability.reporterResp + vote.reporterResp / (S.size voters)
               newCounterpartResp = result.responsability.counterpartResp + vote.counterpartResp / (S.size voters)
@@ -121,15 +105,16 @@ template Votation
 
               newResult = AssessmentDetails with responsability, cost=result.cost, assessmentDate=result.assessmentDate, reparationDate=result.reparationDate 
           
-          create Votation with visitor; visitDetails; voters; miCid; alreadyVoted = S.insert voter voters; result = newResult
+          create Votation with tenant; host; miDetails; visitor; visitDetails; voters; miReportCid; alreadyVoted = S.insert voter voters; result = newResult
 
-    choice FinalizeVotation : ContractId MI
+    choice FinalizeVotation : ContractId MIresultArbitrators
       with 
         finalizer : Party
       controller finalizer
       do
         assertMsg "Tried to finalize votation with out all votes completed." (alreadyVoted==voters)
-        exercise miCid SetAssessment with arbitrator = finalizer; assessment = result
+        archive miReportCid
+        create MIresultArbitrators with tenant; host; miDetails; arbitrators=voters; visitor; visitDetails; assessment=result
 
 
 toVote : Votation -> Parties
@@ -141,36 +126,48 @@ toVote Votation {alreadyVoted, voters} = S.difference voters alreadyVoted
 
 
 
-
 template Assessment
   with 
-    approvers : Parties
-    assessmentDetails : AssessmentDetails
-    miCid : ContractId MI
-    alreadySigned : Parties
+    creator :  Party
+    signer : Party
+    assessment : AssessmentDetails
+    miDetails : MIdetails
   where 
-    signatory alreadySigned
-    observer  approvers
+    signatory creator
+    observer  signer
     
 
-    choice Sign : ContractId Assessment 
+    choice SignAssessment : ContractId MIresultFriendly 
       with
         signer : Party
       controller signer
         do
-          -- Check the controller is in the toSign set, and if they are, sign the Pending contract
-          assert (S.member signer (toSign this))
-          create this with alreadySigned = S.insert signer alreadySigned   
-
-    choice FinalizeAssessment : ContractId MI
-      with 
-        finalizer : Party
-      controller finalizer
-      do
-         assertMsg "Not every Party Signed the Assessment" (alreadySigned == approvers)
-         exercise miCid SetAssessment with arbitrator = finalizer; assessment = assessmentDetails
+          create MIresultFriendly with assessmentCreator=creator; assessmentSigner=signer; miDetails; assessment
 
 
-toSign : Assessment -> Parties
-toSign Assessment {alreadySigned, approvers} = S.difference approvers alreadySigned
 
+
+
+template MIresultArbitrators
+  with 
+    tenant : Party
+    host : Party
+    miDetails : MIdetails
+    arbitrators : Parties
+    visitor : Party
+    visitDetails : Text
+    assessment : AssessmentDetails 
+  where 
+    signatory arbitrators
+    observer tenant, host
+
+
+
+template MIresultFriendly
+  with 
+    assessmentCreator : Party
+    assessmentSigner : Party
+    miDetails : MIdetails
+    assessment : AssessmentDetails 
+  where
+    signatory assessmentCreator, assessmentSigner

@@ -21,23 +21,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.MI;
+import rentingPlatform.codegen.platform.leaseagreement.modelmi.MIReport;
 import rentingPlatform.codegen.platform.types.mi.AssessmentDetails;
 
 public class SubmitAssessment extends DamlRecord<SubmitAssessment> {
-  public static final String _packageId = "b80ed0eb60b6c3d918d4f24fbb5689a03c7ad2642b523a689de07104f792b41f";
+  public static final String _packageId = "b1c69ded5e6f9b3209adda4613b08585e35d988f49cc818e5af8942f840887f7";
 
-  public final String submitter;
+  public final String creator;
 
-  public final AssessmentDetails assessmentDetails;
+  public final String signer;
 
-  public final MI.ContractId miCid;
+  public final AssessmentDetails assessment;
 
-  public SubmitAssessment(String submitter, AssessmentDetails assessmentDetails,
-      MI.ContractId miCid) {
-    this.submitter = submitter;
-    this.assessmentDetails = assessmentDetails;
-    this.miCid = miCid;
+  public final MIReport.ContractId miReportCid;
+
+  public SubmitAssessment(String creator, String signer, AssessmentDetails assessment,
+      MIReport.ContractId miReportCid) {
+    this.creator = creator;
+    this.signer = signer;
+    this.assessment = assessment;
+    this.miReportCid = miReportCid;
   }
 
   /**
@@ -51,35 +54,38 @@ public class SubmitAssessment extends DamlRecord<SubmitAssessment> {
   public static ValueDecoder<SubmitAssessment> valueDecoder() throws IllegalArgumentException {
     return value$ -> {
       Value recordValue$ = value$;
-      List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(3,0,
+      List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(4,0,
           recordValue$);
-      String submitter = PrimitiveValueDecoders.fromParty.decode(fields$.get(0).getValue());
-      AssessmentDetails assessmentDetails = AssessmentDetails.valueDecoder()
-          .decode(fields$.get(1).getValue());
-      MI.ContractId miCid =
-          new MI.ContractId(fields$.get(2).getValue().asContractId().orElseThrow(() -> new IllegalArgumentException("Expected miCid to be of type com.daml.ledger.javaapi.data.ContractId")).getValue());
-      return new SubmitAssessment(submitter, assessmentDetails, miCid);
+      String creator = PrimitiveValueDecoders.fromParty.decode(fields$.get(0).getValue());
+      String signer = PrimitiveValueDecoders.fromParty.decode(fields$.get(1).getValue());
+      AssessmentDetails assessment = AssessmentDetails.valueDecoder()
+          .decode(fields$.get(2).getValue());
+      MIReport.ContractId miReportCid =
+          new MIReport.ContractId(fields$.get(3).getValue().asContractId().orElseThrow(() -> new IllegalArgumentException("Expected miReportCid to be of type com.daml.ledger.javaapi.data.ContractId")).getValue());
+      return new SubmitAssessment(creator, signer, assessment, miReportCid);
     } ;
   }
 
   public com.daml.ledger.javaapi.data.DamlRecord toValue() {
-    ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field> fields = new ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field>(3);
-    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("submitter", new Party(this.submitter)));
-    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("assessmentDetails", this.assessmentDetails.toValue()));
-    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("miCid", this.miCid.toValue()));
+    ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field> fields = new ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field>(4);
+    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("creator", new Party(this.creator)));
+    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("signer", new Party(this.signer)));
+    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("assessment", this.assessment.toValue()));
+    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("miReportCid", this.miReportCid.toValue()));
     return new com.daml.ledger.javaapi.data.DamlRecord(fields);
   }
 
   public static JsonLfDecoder<SubmitAssessment> jsonDecoder() {
-    return JsonLfDecoders.record(Arrays.asList("submitter", "assessmentDetails", "miCid"), name -> {
+    return JsonLfDecoders.record(Arrays.asList("creator", "signer", "assessment", "miReportCid"), name -> {
           switch (name) {
-            case "submitter": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
-            case "assessmentDetails": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, rentingPlatform.codegen.platform.types.mi.AssessmentDetails.jsonDecoder());
-            case "miCid": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(2, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.contractId(rentingPlatform.codegen.platform.leaseagreement.modelmi.MI.ContractId::new));
+            case "creator": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
+            case "signer": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
+            case "assessment": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(2, rentingPlatform.codegen.platform.types.mi.AssessmentDetails.jsonDecoder());
+            case "miReportCid": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.contractId(rentingPlatform.codegen.platform.leaseagreement.modelmi.MIReport.ContractId::new));
             default: return null;
           }
         }
-        , (Object[] args) -> new SubmitAssessment(JsonLfDecoders.cast(args[0]), JsonLfDecoders.cast(args[1]), JsonLfDecoders.cast(args[2])));
+        , (Object[] args) -> new SubmitAssessment(JsonLfDecoders.cast(args[0]), JsonLfDecoders.cast(args[1]), JsonLfDecoders.cast(args[2]), JsonLfDecoders.cast(args[3])));
   }
 
   public static SubmitAssessment fromJson(String json) throws JsonLfDecoder.Error {
@@ -88,9 +94,10 @@ public class SubmitAssessment extends DamlRecord<SubmitAssessment> {
 
   public JsonLfEncoder jsonEncoder() {
     return JsonLfEncoders.record(
-        JsonLfEncoders.Field.of("submitter", apply(JsonLfEncoders::party, submitter)),
-        JsonLfEncoders.Field.of("assessmentDetails", apply(AssessmentDetails::jsonEncoder, assessmentDetails)),
-        JsonLfEncoders.Field.of("miCid", apply(JsonLfEncoders::contractId, miCid)));
+        JsonLfEncoders.Field.of("creator", apply(JsonLfEncoders::party, creator)),
+        JsonLfEncoders.Field.of("signer", apply(JsonLfEncoders::party, signer)),
+        JsonLfEncoders.Field.of("assessment", apply(AssessmentDetails::jsonEncoder, assessment)),
+        JsonLfEncoders.Field.of("miReportCid", apply(JsonLfEncoders::contractId, miReportCid)));
   }
 
   @Override
@@ -105,19 +112,20 @@ public class SubmitAssessment extends DamlRecord<SubmitAssessment> {
       return false;
     }
     SubmitAssessment other = (SubmitAssessment) object;
-    return Objects.equals(this.submitter, other.submitter) &&
-        Objects.equals(this.assessmentDetails, other.assessmentDetails) &&
-        Objects.equals(this.miCid, other.miCid);
+    return Objects.equals(this.creator, other.creator) &&
+        Objects.equals(this.signer, other.signer) &&
+        Objects.equals(this.assessment, other.assessment) &&
+        Objects.equals(this.miReportCid, other.miReportCid);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.submitter, this.assessmentDetails, this.miCid);
+    return Objects.hash(this.creator, this.signer, this.assessment, this.miReportCid);
   }
 
   @Override
   public String toString() {
-    return String.format("rentingPlatform.codegen.platform.leaseagreement.service.SubmitAssessment(%s, %s, %s)",
-        this.submitter, this.assessmentDetails, this.miCid);
+    return String.format("rentingPlatform.codegen.platform.leaseagreement.service.SubmitAssessment(%s, %s, %s, %s)",
+        this.creator, this.signer, this.assessment, this.miReportCid);
   }
 }

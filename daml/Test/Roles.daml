@@ -16,6 +16,7 @@ data Parties = Parties
     operator: Party
     admin: Party
     timeProvider: Party
+    arbitrator: Party
     arbitrator1: Party
     public : Party
 
@@ -33,13 +34,14 @@ init = script do
     bob <- allocatePartyWithHint "Bob" (PartyIdHint "Bob")                       
     admin <- allocatePartyWithHint "Admin" (PartyIdHint "Admin")                 
     timeProvider <- allocatePartyWithHint "TimeProvider" (PartyIdHint "TimeProvider")     
+    arbitrator <- allocatePartyWithHint "Arbitrator" (PartyIdHint "Arbitrator")     
     arbitrator1 <- allocatePartyWithHint "Arbitrator1" (PartyIdHint "Arbitrator1")     
     public <- allocatePartyWithHint "Public" (PartyIdHint "Public")    
 
     now <- getTime
     let house = House with host=alice; address = "Telheiras"; details = "This is a nice house"; listedRent=100 -- bug
         leaseTerms = LeaseTerms with agreedRent=100; beginingDate = date 2024 Jan 2; paymentDates=[date 2024 Jan 3, date 2024 Feb 1, date 2024 Mar 1]; nArbitrators = 2
-        parties = Parties with alice; bob; operator; admin; timeProvider; arbitrator1; public
+        parties = Parties with alice; bob; operator; admin; timeProvider; arbitrator; arbitrator1; public
         today = toDateUTC now
 
     operatorRoleCid <- submit operator do

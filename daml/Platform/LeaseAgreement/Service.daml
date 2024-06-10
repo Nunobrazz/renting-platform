@@ -1,12 +1,12 @@
 module Platform.LeaseAgreement.Service where
 
 import qualified DA.Set as S
+import Types.Common
 import Platform.Types.Common 
 import Platform.Types.LA 
 import Platform.Types.MI 
-import Platform.LeaseAgreement.ModelLA qualified as LAmodel (LeaseAgreement(..))
-import Platform.LeaseAgreement.ModelMI qualified as MImodel (MI(..), Assessment(..), Sign(..))
-
+import Platform.LeaseAgreement.ModelLA 
+import Platform.LeaseAgreement.ModelMI
 
 
 template Service
@@ -14,59 +14,68 @@ template Service
     operator : Party
     host : Party       -- Who will put the house for listing (must be host)
     tenant : Party     -- Who is renting the house
+    arbitrator : Party
     laKey : LAkey
   where
     signatory operator, host, tenant    -- Market operator and user will need to sign this contract
     
     key (host, tenant) : (Party, Party)  
     maintainer key._1, key._2
-   
-
-
-
+  
 
 
 ---- BEGIN ---- MAINTENANCE ISSUES
   
-    nonconsuming choice CreateMI : ContractId MImodel.MI
+    nonconsuming choice CreateMI : ContractId MIReport
       with 
         reporter : Party
-        counterpart : Party
         house : House
         description : Text
         startingDate : Date -- put today date
-        miDetails : MIdetails 
-      controller miDetails.reporter
+      controller reporter
       do
+
         assertMsg ("Creating the MI the reporter is neither tenant nor host.") (reporter == tenant || reporter == host)
-        assertMsg ("The counterpart is neither tenant nor host.") (counterpart == tenant || counterpart == host)
 
         -- Get number of arbitrators
-        (_, LAmodel.LeaseAgreement{leaseTerms, house}) <- fetchByKey @LAmodel.LeaseAgreement laKey 
+        (_, LeaseAgreement{leaseTerms, house}) <- fetchByKey @LeaseAgreement laKey 
 
         let miDetails = MIdetails with nArbitrators = leaseTerms.nArbitrators; house; startingDate; description
-        
-        create MImodel.MI with operator; reporter; counterpart; miDetails; arbitrators = S.empty; assessment=None
+
+        create MIReport with tenant; host; miDetails; arbitrators = S.empty
 
 
-    nonconsuming choice SubmitAssessment : ContractId MImodel.Assessment
+
+    nonconsuming choice SubmitAssessment : ContractId Assessment
       with 
-        submitter : Party
-        assessmentDetails : AssessmentDetails
-        miCid : ContractId MImodel.MI
-      controller submitter
+        creator : Party
+        signer : Party
+        assessment : AssessmentDetails
+        miReportCid : ContractId MIReport
+      controller creator
       do
-        create MImodel.Assessment with assessmentDetails; approvers = S.fromList [tenant, host]; miCid; alreadySigned = S.fromList [submitter]
+        MIReport{miDetails} <- fetch miReportCid
+        create Assessment with creator; signer; miDetails; assessment
     
 
-    nonconsuming choice SignAssessment : ContractId MImodel.Assessment
+    nonconsuming choice AcceptAssessment : ContractId MIresultFriendly
       with 
         signer : Party 
-        assessmentCid : ContractId MImodel.Assessment
+        assessmentCid : ContractId Assessment
       controller signer
       do
-        exercise assessmentCid MImodel.Sign with signer
+        exercise assessmentCid SignAssessment with signer
 
+
+    nonconsuming choice InvokeArbitrators : ContractId InviteArbitrators -- Como fazer que os reportes não convidem estranhos ?  Meter o operator a criar um contract com todos os arbitrators disponiveis ?
+      with
+        inviter : Party 
+        invited : Parties
+        miReportCid : ContractId MIReport
+      controller inviter
+      do
+        MIReport{miDetails} <- fetch miReportCid
+        create InviteArbitrators with inviter; invited; confirmed = S.empty; miDetails; miReportCid
 
     
 
@@ -92,13 +101,13 @@ template Request
 
     choice Approve : ContractId Service
       with 
-        --laBuilderCid : ContractId Builder.LeaseAgreement
         lifecycler : Party
+        arbitrator : Party
       controller operator      -- operator approves
       do
-        -- build lease agreement  not completed
-        _ <- create LAmodel.LeaseAgreement with operator;lifecycler; tenant=proposer; house; leaseTerms;paymentsToProcess=leaseTerms.paymentDates
-        create Service with operator; tenant=proposer; host=house.host; laKey = LAkey with tenant=proposer;house
+
+        create LeaseAgreement with operator; lifecycler; tenant=proposer; house; leaseTerms;paymentsToProcess=leaseTerms.paymentDates
+        create Service with operator; tenant=proposer; host=house.host; arbitrator; laKey = LAkey with tenant=proposer;house
 
 
 

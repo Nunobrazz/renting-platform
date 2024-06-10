@@ -14,9 +14,9 @@ data Responsability=Responsability
 data AssessmentDetails=AssessmentDetails 
   with
     responsability : Responsability 
-    cost : Optional Int
+    cost : Int
     assessmentDate : Date
-    reparationDate : Optional Date
+    reparationDate : Date
   deriving (Eq, Show)
 
 

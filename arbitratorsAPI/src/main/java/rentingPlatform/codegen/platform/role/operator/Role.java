@@ -39,44 +39,32 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import rentingPlatform.codegen.platform.leaseagreement.arbitratorsservice.Offer;
-import rentingPlatform.codegen.platform.leaseagreement.service.Request;
-import rentingPlatform.codegen.platform.leaseagreement.service.Service;
+import rentingPlatform.codegen.platform.proposal.service.Request;
+import rentingPlatform.codegen.platform.proposal.service.Service;
 
 public final class Role extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("b80ed0eb60b6c3d918d4f24fbb5689a03c7ad2642b523a689de07104f792b41f", "Platform.Role.Operator", "Role");
+  public static final Identifier TEMPLATE_ID = new Identifier("b1c69ded5e6f9b3209adda4613b08585e35d988f49cc818e5af8942f840887f7", "Platform.Role.Operator", "Role");
 
-  public static final Choice<Role, ApproveLeaseAgreementService, Service.ContractId> CHOICE_ApproveLeaseAgreementService = 
-      Choice.create("ApproveLeaseAgreementService", value$ -> value$.toValue(), value$ ->
-        ApproveLeaseAgreementService.valueDecoder().decode(value$), value$ ->
-        new Service.ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
-
-  public static final Choice<Role, ApproveArbitratorService, rentingPlatform.codegen.platform.leaseagreement.arbitratorsservice.Service.ContractId> CHOICE_ApproveArbitratorService = 
-      Choice.create("ApproveArbitratorService", value$ -> value$.toValue(), value$ ->
-        ApproveArbitratorService.valueDecoder().decode(value$), value$ ->
-        new rentingPlatform.codegen.platform.leaseagreement.arbitratorsservice.Service.ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
-
-  public static final Choice<Role, OfferArbitratorService, Offer.ContractId> CHOICE_OfferArbitratorService = 
-      Choice.create("OfferArbitratorService", value$ -> value$.toValue(), value$ ->
-        OfferArbitratorService.valueDecoder().decode(value$), value$ ->
-        new Offer.ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
-
-  public static final Choice<Role, ApproveProposalServiceRequest, rentingPlatform.codegen.platform.proposal.service.Service.ContractId> CHOICE_ApproveProposalServiceRequest = 
+  public static final Choice<Role, ApproveProposalServiceRequest, Service.ContractId> CHOICE_ApproveProposalServiceRequest = 
       Choice.create("ApproveProposalServiceRequest", value$ -> value$.toValue(), value$ ->
         ApproveProposalServiceRequest.valueDecoder().decode(value$), value$ ->
-        new rentingPlatform.codegen.platform.proposal.service.Service.ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
+        new Service.ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
 
   public static final Choice<Role, rentingPlatform.codegen.da.internal.template.Archive, Unit> CHOICE_Archive = 
       Choice.create("Archive", value$ -> value$.toValue(), value$ ->
         rentingPlatform.codegen.da.internal.template.Archive.valueDecoder().decode(value$),
         value$ -> PrimitiveValueDecoders.fromUnit.decode(value$));
 
+  public static final Choice<Role, ApproveLeaseAgreementService, rentingPlatform.codegen.platform.leaseagreement.service.Service.ContractId> CHOICE_ApproveLeaseAgreementService = 
+      Choice.create("ApproveLeaseAgreementService", value$ -> value$.toValue(), value$ ->
+        ApproveLeaseAgreementService.valueDecoder().decode(value$), value$ ->
+        new rentingPlatform.codegen.platform.leaseagreement.service.Service.ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
+
   public static final ContractCompanion.WithKey<Contract, ContractId, Role, String> COMPANION = 
       new ContractCompanion.WithKey<>("rentingPlatform.codegen.platform.role.operator.Role",
         TEMPLATE_ID, ContractId::new, v -> Role.templateValueDecoder().decode(v), Role::fromJson,
-        Contract::new, List.of(CHOICE_ApproveProposalServiceRequest, CHOICE_OfferArbitratorService,
-        CHOICE_ApproveLeaseAgreementService, CHOICE_Archive, CHOICE_ApproveArbitratorService),
-        e -> PrimitiveValueDecoders.fromParty.decode(e));
+        Contract::new, List.of(CHOICE_ApproveProposalServiceRequest, CHOICE_Archive,
+        CHOICE_ApproveLeaseAgreementService), e -> PrimitiveValueDecoders.fromParty.decode(e));
 
   public final String operator;
 
@@ -90,66 +78,10 @@ public final class Role extends Template {
   }
 
   /**
-   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseApproveLeaseAgreementService} instead
-   */
-  @Deprecated
-  public static Update<Exercised<Service.ContractId>> exerciseByKeyApproveLeaseAgreementService(
-      String key, ApproveLeaseAgreementService arg) {
-    return byKey(key).exerciseApproveLeaseAgreementService(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseApproveLeaseAgreementService(laServiceReqCid,
-      lifecycler)} instead
-   */
-  @Deprecated
-  public static Update<Exercised<Service.ContractId>> exerciseByKeyApproveLeaseAgreementService(
-      String key, Request.ContractId laServiceReqCid, String lifecycler) {
-    return byKey(key).exerciseApproveLeaseAgreementService(laServiceReqCid, lifecycler);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseApproveArbitratorService} instead
-   */
-  @Deprecated
-  public static Update<Exercised<rentingPlatform.codegen.platform.leaseagreement.arbitratorsservice.Service.ContractId>> exerciseByKeyApproveArbitratorService(
-      String key, ApproveArbitratorService arg) {
-    return byKey(key).exerciseApproveArbitratorService(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseApproveArbitratorService(serviceReqCid)} instead
-   */
-  @Deprecated
-  public static Update<Exercised<rentingPlatform.codegen.platform.leaseagreement.arbitratorsservice.Service.ContractId>> exerciseByKeyApproveArbitratorService(
-      String key,
-      rentingPlatform.codegen.platform.leaseagreement.arbitratorsservice.Request.ContractId serviceReqCid) {
-    return byKey(key).exerciseApproveArbitratorService(serviceReqCid);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseOfferArbitratorService} instead
-   */
-  @Deprecated
-  public static Update<Exercised<Offer.ContractId>> exerciseByKeyOfferArbitratorService(String key,
-      OfferArbitratorService arg) {
-    return byKey(key).exerciseOfferArbitratorService(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseOfferArbitratorService(arbitrator)} instead
-   */
-  @Deprecated
-  public static Update<Exercised<Offer.ContractId>> exerciseByKeyOfferArbitratorService(String key,
-      String arbitrator) {
-    return byKey(key).exerciseOfferArbitratorService(arbitrator);
-  }
-
-  /**
    * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseApproveProposalServiceRequest} instead
    */
   @Deprecated
-  public static Update<Exercised<rentingPlatform.codegen.platform.proposal.service.Service.ContractId>> exerciseByKeyApproveProposalServiceRequest(
+  public static Update<Exercised<Service.ContractId>> exerciseByKeyApproveProposalServiceRequest(
       String key, ApproveProposalServiceRequest arg) {
     return byKey(key).exerciseApproveProposalServiceRequest(arg);
   }
@@ -158,9 +90,8 @@ public final class Role extends Template {
    * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseApproveProposalServiceRequest(proposalReqCid)} instead
    */
   @Deprecated
-  public static Update<Exercised<rentingPlatform.codegen.platform.proposal.service.Service.ContractId>> exerciseByKeyApproveProposalServiceRequest(
-      String key,
-      rentingPlatform.codegen.platform.proposal.service.Request.ContractId proposalReqCid) {
+  public static Update<Exercised<Service.ContractId>> exerciseByKeyApproveProposalServiceRequest(
+      String key, Request.ContractId proposalReqCid) {
     return byKey(key).exerciseApproveProposalServiceRequest(proposalReqCid);
   }
 
@@ -182,65 +113,31 @@ public final class Role extends Template {
   }
 
   /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseApproveLeaseAgreementService} instead
+   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseApproveLeaseAgreementService} instead
    */
   @Deprecated
-  public Update<Exercised<Service.ContractId>> createAndExerciseApproveLeaseAgreementService(
-      ApproveLeaseAgreementService arg) {
-    return createAnd().exerciseApproveLeaseAgreementService(arg);
+  public static Update<Exercised<rentingPlatform.codegen.platform.leaseagreement.service.Service.ContractId>> exerciseByKeyApproveLeaseAgreementService(
+      String key, ApproveLeaseAgreementService arg) {
+    return byKey(key).exerciseApproveLeaseAgreementService(arg);
   }
 
   /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseApproveLeaseAgreementService} instead
+   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseApproveLeaseAgreementService(laServiceReqCid,
+      lifecycler, arbitrator)} instead
    */
   @Deprecated
-  public Update<Exercised<Service.ContractId>> createAndExerciseApproveLeaseAgreementService(
-      Request.ContractId laServiceReqCid, String lifecycler) {
-    return createAndExerciseApproveLeaseAgreementService(new ApproveLeaseAgreementService(laServiceReqCid,
-        lifecycler));
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseApproveArbitratorService} instead
-   */
-  @Deprecated
-  public Update<Exercised<rentingPlatform.codegen.platform.leaseagreement.arbitratorsservice.Service.ContractId>> createAndExerciseApproveArbitratorService(
-      ApproveArbitratorService arg) {
-    return createAnd().exerciseApproveArbitratorService(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseApproveArbitratorService} instead
-   */
-  @Deprecated
-  public Update<Exercised<rentingPlatform.codegen.platform.leaseagreement.arbitratorsservice.Service.ContractId>> createAndExerciseApproveArbitratorService(
-      rentingPlatform.codegen.platform.leaseagreement.arbitratorsservice.Request.ContractId serviceReqCid) {
-    return createAndExerciseApproveArbitratorService(new ApproveArbitratorService(serviceReqCid));
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseOfferArbitratorService} instead
-   */
-  @Deprecated
-  public Update<Exercised<Offer.ContractId>> createAndExerciseOfferArbitratorService(
-      OfferArbitratorService arg) {
-    return createAnd().exerciseOfferArbitratorService(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseOfferArbitratorService} instead
-   */
-  @Deprecated
-  public Update<Exercised<Offer.ContractId>> createAndExerciseOfferArbitratorService(
-      String arbitrator) {
-    return createAndExerciseOfferArbitratorService(new OfferArbitratorService(arbitrator));
+  public static Update<Exercised<rentingPlatform.codegen.platform.leaseagreement.service.Service.ContractId>> exerciseByKeyApproveLeaseAgreementService(
+      String key,
+      rentingPlatform.codegen.platform.leaseagreement.service.Request.ContractId laServiceReqCid,
+      String lifecycler, String arbitrator) {
+    return byKey(key).exerciseApproveLeaseAgreementService(laServiceReqCid, lifecycler, arbitrator);
   }
 
   /**
    * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseApproveProposalServiceRequest} instead
    */
   @Deprecated
-  public Update<Exercised<rentingPlatform.codegen.platform.proposal.service.Service.ContractId>> createAndExerciseApproveProposalServiceRequest(
+  public Update<Exercised<Service.ContractId>> createAndExerciseApproveProposalServiceRequest(
       ApproveProposalServiceRequest arg) {
     return createAnd().exerciseApproveProposalServiceRequest(arg);
   }
@@ -249,8 +146,8 @@ public final class Role extends Template {
    * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseApproveProposalServiceRequest} instead
    */
   @Deprecated
-  public Update<Exercised<rentingPlatform.codegen.platform.proposal.service.Service.ContractId>> createAndExerciseApproveProposalServiceRequest(
-      rentingPlatform.codegen.platform.proposal.service.Request.ContractId proposalReqCid) {
+  public Update<Exercised<Service.ContractId>> createAndExerciseApproveProposalServiceRequest(
+      Request.ContractId proposalReqCid) {
     return createAndExerciseApproveProposalServiceRequest(new ApproveProposalServiceRequest(proposalReqCid));
   }
 
@@ -269,6 +166,26 @@ public final class Role extends Template {
   @Deprecated
   public Update<Exercised<Unit>> createAndExerciseArchive() {
     return createAndExerciseArchive(new rentingPlatform.codegen.da.internal.template.Archive());
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseApproveLeaseAgreementService} instead
+   */
+  @Deprecated
+  public Update<Exercised<rentingPlatform.codegen.platform.leaseagreement.service.Service.ContractId>> createAndExerciseApproveLeaseAgreementService(
+      ApproveLeaseAgreementService arg) {
+    return createAnd().exerciseApproveLeaseAgreementService(arg);
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseApproveLeaseAgreementService} instead
+   */
+  @Deprecated
+  public Update<Exercised<rentingPlatform.codegen.platform.leaseagreement.service.Service.ContractId>> createAndExerciseApproveLeaseAgreementService(
+      rentingPlatform.codegen.platform.leaseagreement.service.Request.ContractId laServiceReqCid,
+      String lifecycler, String arbitrator) {
+    return createAndExerciseApproveLeaseAgreementService(new ApproveLeaseAgreementService(laServiceReqCid,
+        lifecycler, arbitrator));
   }
 
   public static Update<Created<ContractId>> create(String operator) {
@@ -410,43 +327,13 @@ public final class Role extends Template {
   }
 
   public interface Exercises<Cmd> extends com.daml.ledger.javaapi.data.codegen.Exercises.Archive<Cmd> {
-    default Update<Exercised<Service.ContractId>> exerciseApproveLeaseAgreementService(
-        ApproveLeaseAgreementService arg) {
-      return makeExerciseCmd(CHOICE_ApproveLeaseAgreementService, arg);
-    }
-
-    default Update<Exercised<Service.ContractId>> exerciseApproveLeaseAgreementService(
-        Request.ContractId laServiceReqCid, String lifecycler) {
-      return exerciseApproveLeaseAgreementService(new ApproveLeaseAgreementService(laServiceReqCid,
-          lifecycler));
-    }
-
-    default Update<Exercised<rentingPlatform.codegen.platform.leaseagreement.arbitratorsservice.Service.ContractId>> exerciseApproveArbitratorService(
-        ApproveArbitratorService arg) {
-      return makeExerciseCmd(CHOICE_ApproveArbitratorService, arg);
-    }
-
-    default Update<Exercised<rentingPlatform.codegen.platform.leaseagreement.arbitratorsservice.Service.ContractId>> exerciseApproveArbitratorService(
-        rentingPlatform.codegen.platform.leaseagreement.arbitratorsservice.Request.ContractId serviceReqCid) {
-      return exerciseApproveArbitratorService(new ApproveArbitratorService(serviceReqCid));
-    }
-
-    default Update<Exercised<Offer.ContractId>> exerciseOfferArbitratorService(
-        OfferArbitratorService arg) {
-      return makeExerciseCmd(CHOICE_OfferArbitratorService, arg);
-    }
-
-    default Update<Exercised<Offer.ContractId>> exerciseOfferArbitratorService(String arbitrator) {
-      return exerciseOfferArbitratorService(new OfferArbitratorService(arbitrator));
-    }
-
-    default Update<Exercised<rentingPlatform.codegen.platform.proposal.service.Service.ContractId>> exerciseApproveProposalServiceRequest(
+    default Update<Exercised<Service.ContractId>> exerciseApproveProposalServiceRequest(
         ApproveProposalServiceRequest arg) {
       return makeExerciseCmd(CHOICE_ApproveProposalServiceRequest, arg);
     }
 
-    default Update<Exercised<rentingPlatform.codegen.platform.proposal.service.Service.ContractId>> exerciseApproveProposalServiceRequest(
-        rentingPlatform.codegen.platform.proposal.service.Request.ContractId proposalReqCid) {
+    default Update<Exercised<Service.ContractId>> exerciseApproveProposalServiceRequest(
+        Request.ContractId proposalReqCid) {
       return exerciseApproveProposalServiceRequest(new ApproveProposalServiceRequest(proposalReqCid));
     }
 
@@ -457,6 +344,18 @@ public final class Role extends Template {
 
     default Update<Exercised<Unit>> exerciseArchive() {
       return exerciseArchive(new rentingPlatform.codegen.da.internal.template.Archive());
+    }
+
+    default Update<Exercised<rentingPlatform.codegen.platform.leaseagreement.service.Service.ContractId>> exerciseApproveLeaseAgreementService(
+        ApproveLeaseAgreementService arg) {
+      return makeExerciseCmd(CHOICE_ApproveLeaseAgreementService, arg);
+    }
+
+    default Update<Exercised<rentingPlatform.codegen.platform.leaseagreement.service.Service.ContractId>> exerciseApproveLeaseAgreementService(
+        rentingPlatform.codegen.platform.leaseagreement.service.Request.ContractId laServiceReqCid,
+        String lifecycler, String arbitrator) {
+      return exerciseApproveLeaseAgreementService(new ApproveLeaseAgreementService(laServiceReqCid,
+          lifecycler, arbitrator));
     }
   }
 

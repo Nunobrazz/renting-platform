@@ -5,7 +5,6 @@ import Test.LAcreation
 import Daml.Script
 import DA.Date
 import Platform.Types.LA 
-import Platform.Types.MI
 import Platform.LeaseAgreement.Service qualified as LA (CreateMI(..))
 
 initialize : Script (Party, Party,Party)
@@ -14,12 +13,12 @@ initialize = do
   (parties, contracts, house, _) <- laCreation
   let 
       laKey = LAkey with tenant = parties.bob; house 
-      miDetails = MIdetails with reporter=parties.bob; counterpart=parties.alice; house; startingDate = date 2024 May 19; description = "Broken chair"; nArbitrators=1
 
 
   -- Bob creates MI  Should be bob or host inviting arbitrators
-  miCid <- submit parties.bob do 
-    exerciseCmd contracts.laServiceCid LA.CreateMI with miDetails
+  miReportCid <- submit parties.bob do 
+    exerciseCmd contracts.laServiceCid LA.CreateMI with reporter=parties.bob; house; startingDate = date 2024 May 19; description = "Broken chair"
+
 
 
   aliceId <- validateUserId "alice"

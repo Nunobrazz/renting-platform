@@ -9,9 +9,7 @@ import Platform.Role.Operator
 import Platform.Types.LA 
 import Platform.Types.MI 
 import Platform.Types.Common 
-import Platform.LeaseAgreement.ArbitratorsService qualified as Arbitrators (Accept(..), FinalizeVotation(..), SubmitVote(..), CreateVotation(..), Request(..))
-import Platform.LeaseAgreement.Service qualified as LA (CreateMI(..))
-import Platform.LeaseAgreement.ModelMI qualified as MI (InviteArbitrators(..), FinalizeInvitation(..))
+import Platform.LeaseAgreement.Service qualified as LA
 
 assignment = do
     
@@ -31,69 +29,20 @@ assignment = do
       operatorRoleCid = contracts.operatorRoleCid
       laServiceCid = contracts.laServiceCid
  
-
       invited = S.fromList [arbitrator1, arbitrator2, arbitrator3] 
       laKey = LAkey with tenant = bob; house 
-      assessment = AssessmentDetails with responsability = (Responsability with  reporterResp = 10; counterpartResp=90); cost=Some 50; assessmentDate =  date 2001 Jan 25; reparationDate = Some (date 2001 Jan 30)
+      assessment = AssessmentDetails with responsability = (Responsability with  reporterResp = 10; counterpartResp=90); cost= 50; assessmentDate = date 2024 Jun 25; reparationDate = (date 2024 Jun 30)
       vote1 = Responsability with reporterResp = 30; counterpartResp=70
       vote2 = Responsability with reporterResp = 10; counterpartResp=90
+
+
+  miReportCid <- submit bob do 
+    exerciseCmd contracts.laServiceCid LA.CreateMI with reporter=bob; house; startingDate = date 2024 May 19; description = "Broken chair"
+
+  invitationCid <- submit bob do 
+    exerciseCmd contracts.laServiceCid LA.InvokeArbitrators with inviter=bob;invited ;miReportCid
   
-
-
-  -- Operator offers access to 2 arbitrators
-  arbitrator1ServiceOfferCid <- submit operator do
-    exerciseCmd operatorRoleCid OfferArbitratorService with arbitrator = arbitrator1
   
-  arbitrator2ServiceOfferCid <- submit operator do
-    exerciseCmd operatorRoleCid OfferArbitratorService with arbitrator = arbitrator2
-
-  -- Arbitrators accept the Offer
-  arbitrator1ServiceCid <- submit arbitrator1 do
-    exerciseCmd arbitrator1ServiceOfferCid Arbitrators.Accept
-
-  arbitrator2ServiceCid <- submit arbitrator2 do
-    exerciseCmd arbitrator2ServiceOfferCid Arbitrators.Accept
-
-  -- One arbitrator asks access to the service 
-  arbitrator3ServiceReqCid <- submit arbitrator3 do
-    createCmd Arbitrators.Request with operator; arbitrator = arbitrator3
- 
-  arbitrator3ServiceCid <- submit operator do
-    exerciseCmd operatorRoleCid ApproveArbitratorService with serviceReqCid = arbitrator3ServiceReqCid
-
-
-
-
-
-
-{--  inviteArbitratorsCid <- submit operator do
-    createCmd MI.InviteArbitrators with operator; invited = S.fromList [arbitrator1, arbitrator2, arbitrator3]; confirmed=S.empty; miCid; nArbitrators=2
-
-  inviteArbitratorsCid <- submit arbitrator1 do 
-    exerciseCmd arbitrator1ServiceCid Arbitrators.AcceptMI with inviteArbitratorsCid
-
-  inviteArbitratorsCid <- submit arbitrator2 do 
-    exerciseCmd arbitrator2ServiceCid Arbitrators.AcceptMI with inviteArbitratorsCid  
-  
-  submitMustFail arbitrator3 do 
-    exerciseCmd arbitrator3ServiceCid Arbitrators.AcceptMI with inviteArbitratorsCid
-
-  miCid <- submit operator do
-    exerciseCmd inviteArbitratorsCid MI.FinalizeInvitation 
-
-  votationCid <- submit arbitrator1 do 
-    exerciseCmd arbitrator1ServiceCid Arbitrators.CreateVotation with description="The chair was already broker"; miCid; assessment
-
-  submitMustFail arbitrator3 do
-    exerciseCmd arbitrator3ServiceCid Arbitrators.SubmitVote with votationCid; vote=vote1
-  
-  votationCid <- submit arbitrator2 do
-    exerciseCmd arbitrator2ServiceCid Arbitrators.SubmitVote with  votationCid; vote=vote1
-  
-  miCid <- submit arbitrator2 do
-    exerciseCmd arbitrator2ServiceCid Arbitrators.FinalizeVotation with votationCid
-
-  --}
 
   pure()
 

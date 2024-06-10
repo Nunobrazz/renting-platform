@@ -10,7 +10,7 @@ import Time.Clock (DateClockUpdateEvent(..))
 import Platform.LeaseAgreement.ModelLA
 
 
--- Disapear
+-- Disapear because maybe host does the claim when he wants
 template Evolve
   with
     operator : Party  

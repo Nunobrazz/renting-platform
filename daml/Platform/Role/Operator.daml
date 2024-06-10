@@ -16,26 +16,6 @@ template Role
     key operator : Party
     maintainer key
 
----- BEGIN ---- ARBITRATORS
-
-
-    nonconsuming choice ApproveArbitratorService : ContractId Arbitrators.Service
-      with
-        serviceReqCid : ContractId Arbitrators.Request
-      controller operator
-      do
-        exercise serviceReqCid Arbitrators.Approve 
-
-
-    nonconsuming choice OfferArbitratorService : ContractId Arbitrators.Offer
-      with
-        arbitrator : Party
-      controller operator
-      do
-        create Arbitrators.Offer with operator; arbitrator
-
-
----- END ---- ARBITRATORS
 
 ---- BEGIN ---- PROPOSAL
 
@@ -53,9 +33,10 @@ template Role
       with 
         laServiceReqCid : ContractId LeaseAgreement.Request
         lifecycler:Party
+        arbitrator:Party
       controller operator
       do 
-        exercise laServiceReqCid LeaseAgreement.Approve with lifecycler
+        exercise laServiceReqCid LeaseAgreement.Approve with lifecycler; arbitrator
     
 
 ---- END ---- LEASE AGREEMENT

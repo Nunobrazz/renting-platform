@@ -24,11 +24,14 @@ import java.util.Objects;
 import rentingPlatform.codegen.da.set.types.Set;
 
 public class SetArbitrators extends DamlRecord<SetArbitrators> {
-  public static final String _packageId = "b80ed0eb60b6c3d918d4f24fbb5689a03c7ad2642b523a689de07104f792b41f";
+  public static final String _packageId = "b1c69ded5e6f9b3209adda4613b08585e35d988f49cc818e5af8942f840887f7";
+
+  public final String inviter;
 
   public final Set<String> arbitrators;
 
-  public SetArbitrators(Set<String> arbitrators) {
+  public SetArbitrators(String inviter, Set<String> arbitrators) {
+    this.inviter = inviter;
     this.arbitrators = arbitrators;
   }
 
@@ -43,28 +46,31 @@ public class SetArbitrators extends DamlRecord<SetArbitrators> {
   public static ValueDecoder<SetArbitrators> valueDecoder() throws IllegalArgumentException {
     return value$ -> {
       Value recordValue$ = value$;
-      List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(1,0,
+      List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(2,0,
           recordValue$);
+      String inviter = PrimitiveValueDecoders.fromParty.decode(fields$.get(0).getValue());
       Set<String> arbitrators = Set.<java.lang.String>valueDecoder(PrimitiveValueDecoders.fromParty)
-          .decode(fields$.get(0).getValue());
-      return new SetArbitrators(arbitrators);
+          .decode(fields$.get(1).getValue());
+      return new SetArbitrators(inviter, arbitrators);
     } ;
   }
 
   public com.daml.ledger.javaapi.data.DamlRecord toValue() {
-    ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field> fields = new ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field>(1);
+    ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field> fields = new ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field>(2);
+    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("inviter", new Party(this.inviter)));
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("arbitrators", this.arbitrators.toValue(v$0 -> new Party(v$0))));
     return new com.daml.ledger.javaapi.data.DamlRecord(fields);
   }
 
   public static JsonLfDecoder<SetArbitrators> jsonDecoder() {
-    return JsonLfDecoders.record(Arrays.asList("arbitrators"), name -> {
+    return JsonLfDecoders.record(Arrays.asList("inviter", "arbitrators"), name -> {
           switch (name) {
-            case "arbitrators": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
+            case "inviter": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
+            case "arbitrators": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
             default: return null;
           }
         }
-        , (Object[] args) -> new SetArbitrators(JsonLfDecoders.cast(args[0])));
+        , (Object[] args) -> new SetArbitrators(JsonLfDecoders.cast(args[0]), JsonLfDecoders.cast(args[1])));
   }
 
   public static SetArbitrators fromJson(String json) throws JsonLfDecoder.Error {
@@ -73,6 +79,7 @@ public class SetArbitrators extends DamlRecord<SetArbitrators> {
 
   public JsonLfEncoder jsonEncoder() {
     return JsonLfEncoders.record(
+        JsonLfEncoders.Field.of("inviter", apply(JsonLfEncoders::party, inviter)),
         JsonLfEncoders.Field.of("arbitrators", apply(_x0 -> _x0.jsonEncoder(JsonLfEncoders::party), arbitrators)));
   }
 
@@ -88,17 +95,18 @@ public class SetArbitrators extends DamlRecord<SetArbitrators> {
       return false;
     }
     SetArbitrators other = (SetArbitrators) object;
-    return Objects.equals(this.arbitrators, other.arbitrators);
+    return Objects.equals(this.inviter, other.inviter) &&
+        Objects.equals(this.arbitrators, other.arbitrators);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.arbitrators);
+    return Objects.hash(this.inviter, this.arbitrators);
   }
 
   @Override
   public String toString() {
-    return String.format("rentingPlatform.codegen.platform.leaseagreement.modelmi.SetArbitrators(%s)",
-        this.arbitrators);
+    return String.format("rentingPlatform.codegen.platform.leaseagreement.modelmi.SetArbitrators(%s, %s)",
+        this.inviter, this.arbitrators);
   }
 }

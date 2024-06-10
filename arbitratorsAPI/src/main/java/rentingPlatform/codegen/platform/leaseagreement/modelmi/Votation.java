@@ -39,50 +39,61 @@ import java.util.Objects;
 import java.util.Optional;
 import rentingPlatform.codegen.da.set.types.Set;
 import rentingPlatform.codegen.platform.types.mi.AssessmentDetails;
+import rentingPlatform.codegen.platform.types.mi.MIdetails;
 import rentingPlatform.codegen.platform.types.mi.Responsability;
 
 public final class Votation extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("b80ed0eb60b6c3d918d4f24fbb5689a03c7ad2642b523a689de07104f792b41f", "Platform.LeaseAgreement.ModelMI", "Votation");
-
-  public static final Choice<Votation, Vote, ContractId> CHOICE_Vote = 
-      Choice.create("Vote", value$ -> value$.toValue(), value$ -> Vote.valueDecoder()
-        .decode(value$), value$ ->
-        new ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
-
-  public static final Choice<Votation, FinalizeVotation, MI.ContractId> CHOICE_FinalizeVotation = 
-      Choice.create("FinalizeVotation", value$ -> value$.toValue(), value$ ->
-        FinalizeVotation.valueDecoder().decode(value$), value$ ->
-        new MI.ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
+  public static final Identifier TEMPLATE_ID = new Identifier("b1c69ded5e6f9b3209adda4613b08585e35d988f49cc818e5af8942f840887f7", "Platform.LeaseAgreement.ModelMI", "Votation");
 
   public static final Choice<Votation, rentingPlatform.codegen.da.internal.template.Archive, Unit> CHOICE_Archive = 
       Choice.create("Archive", value$ -> value$.toValue(), value$ ->
         rentingPlatform.codegen.da.internal.template.Archive.valueDecoder().decode(value$),
         value$ -> PrimitiveValueDecoders.fromUnit.decode(value$));
 
+  public static final Choice<Votation, Vote, ContractId> CHOICE_Vote = 
+      Choice.create("Vote", value$ -> value$.toValue(), value$ -> Vote.valueDecoder()
+        .decode(value$), value$ ->
+        new ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
+
+  public static final Choice<Votation, FinalizeVotation, MIresultArbitrators.ContractId> CHOICE_FinalizeVotation = 
+      Choice.create("FinalizeVotation", value$ -> value$.toValue(), value$ ->
+        FinalizeVotation.valueDecoder().decode(value$), value$ ->
+        new MIresultArbitrators.ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
+
   public static final ContractCompanion.WithoutKey<Contract, ContractId, Votation> COMPANION = 
       new ContractCompanion.WithoutKey<>(
         "rentingPlatform.codegen.platform.leaseagreement.modelmi.Votation", TEMPLATE_ID,
         ContractId::new, v -> Votation.templateValueDecoder().decode(v), Votation::fromJson,
-        Contract::new, List.of(CHOICE_Vote, CHOICE_FinalizeVotation, CHOICE_Archive));
+        Contract::new, List.of(CHOICE_Archive, CHOICE_Vote, CHOICE_FinalizeVotation));
 
-  public final String creator;
+  public final String tenant;
 
-  public final String description;
+  public final String host;
+
+  public final MIdetails miDetails;
+
+  public final String visitor;
+
+  public final String visitDetails;
 
   public final Set<String> voters;
 
-  public final MI.ContractId miCid;
+  public final MIReport.ContractId miReportCid;
 
   public final Set<String> alreadyVoted;
 
   public final AssessmentDetails result;
 
-  public Votation(String creator, String description, Set<String> voters, MI.ContractId miCid,
+  public Votation(String tenant, String host, MIdetails miDetails, String visitor,
+      String visitDetails, Set<String> voters, MIReport.ContractId miReportCid,
       Set<String> alreadyVoted, AssessmentDetails result) {
-    this.creator = creator;
-    this.description = description;
+    this.tenant = tenant;
+    this.host = host;
+    this.miDetails = miDetails;
+    this.visitor = visitor;
+    this.visitDetails = visitDetails;
     this.voters = voters;
-    this.miCid = miCid;
+    this.miReportCid = miReportCid;
     this.alreadyVoted = alreadyVoted;
     this.result = result;
   }
@@ -90,6 +101,23 @@ public final class Votation extends Template {
   @Override
   public Update<Created<ContractId>> create() {
     return new Update.CreateUpdate<ContractId, Created<ContractId>>(new CreateCommand(Votation.TEMPLATE_ID, this.toValue()), x -> x, ContractId::new);
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseArchive} instead
+   */
+  @Deprecated
+  public Update<Exercised<Unit>> createAndExerciseArchive(
+      rentingPlatform.codegen.da.internal.template.Archive arg) {
+    return createAnd().exerciseArchive(arg);
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseArchive} instead
+   */
+  @Deprecated
+  public Update<Exercised<Unit>> createAndExerciseArchive() {
+    return createAndExerciseArchive(new rentingPlatform.codegen.da.internal.template.Archive());
   }
 
   /**
@@ -112,7 +140,8 @@ public final class Votation extends Template {
    * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseFinalizeVotation} instead
    */
   @Deprecated
-  public Update<Exercised<MI.ContractId>> createAndExerciseFinalizeVotation(FinalizeVotation arg) {
+  public Update<Exercised<MIresultArbitrators.ContractId>> createAndExerciseFinalizeVotation(
+      FinalizeVotation arg) {
     return createAnd().exerciseFinalizeVotation(arg);
   }
 
@@ -120,30 +149,16 @@ public final class Votation extends Template {
    * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseFinalizeVotation} instead
    */
   @Deprecated
-  public Update<Exercised<MI.ContractId>> createAndExerciseFinalizeVotation(String finalizer) {
+  public Update<Exercised<MIresultArbitrators.ContractId>> createAndExerciseFinalizeVotation(
+      String finalizer) {
     return createAndExerciseFinalizeVotation(new FinalizeVotation(finalizer));
   }
 
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseArchive} instead
-   */
-  @Deprecated
-  public Update<Exercised<Unit>> createAndExerciseArchive(
-      rentingPlatform.codegen.da.internal.template.Archive arg) {
-    return createAnd().exerciseArchive(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseArchive} instead
-   */
-  @Deprecated
-  public Update<Exercised<Unit>> createAndExerciseArchive() {
-    return createAndExerciseArchive(new rentingPlatform.codegen.da.internal.template.Archive());
-  }
-
-  public static Update<Created<ContractId>> create(String creator, String description,
-      Set<String> voters, MI.ContractId miCid, Set<String> alreadyVoted, AssessmentDetails result) {
-    return new Votation(creator, description, voters, miCid, alreadyVoted, result).create();
+  public static Update<Created<ContractId>> create(String tenant, String host, MIdetails miDetails,
+      String visitor, String visitDetails, Set<String> voters, MIReport.ContractId miReportCid,
+      Set<String> alreadyVoted, AssessmentDetails result) {
+    return new Votation(tenant, host, miDetails, visitor, visitDetails, voters, miReportCid,
+        alreadyVoted, result).create();
   }
 
   @Override
@@ -169,11 +184,14 @@ public final class Votation extends Template {
   }
 
   public DamlRecord toValue() {
-    ArrayList<DamlRecord.Field> fields = new ArrayList<DamlRecord.Field>(6);
-    fields.add(new DamlRecord.Field("creator", new Party(this.creator)));
-    fields.add(new DamlRecord.Field("description", new Text(this.description)));
+    ArrayList<DamlRecord.Field> fields = new ArrayList<DamlRecord.Field>(9);
+    fields.add(new DamlRecord.Field("tenant", new Party(this.tenant)));
+    fields.add(new DamlRecord.Field("host", new Party(this.host)));
+    fields.add(new DamlRecord.Field("miDetails", this.miDetails.toValue()));
+    fields.add(new DamlRecord.Field("visitor", new Party(this.visitor)));
+    fields.add(new DamlRecord.Field("visitDetails", new Text(this.visitDetails)));
     fields.add(new DamlRecord.Field("voters", this.voters.toValue(v$0 -> new Party(v$0))));
-    fields.add(new DamlRecord.Field("miCid", this.miCid.toValue()));
+    fields.add(new DamlRecord.Field("miReportCid", this.miReportCid.toValue()));
     fields.add(new DamlRecord.Field("alreadyVoted", this.alreadyVoted.toValue(v$0 -> new Party(v$0))));
     fields.add(new DamlRecord.Field("result", this.result.toValue()));
     return new DamlRecord(fields);
@@ -182,34 +200,41 @@ public final class Votation extends Template {
   private static ValueDecoder<Votation> templateValueDecoder() throws IllegalArgumentException {
     return value$ -> {
       Value recordValue$ = value$;
-      List<DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(6,0, recordValue$);
-      String creator = PrimitiveValueDecoders.fromParty.decode(fields$.get(0).getValue());
-      String description = PrimitiveValueDecoders.fromText.decode(fields$.get(1).getValue());
+      List<DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(9,0, recordValue$);
+      String tenant = PrimitiveValueDecoders.fromParty.decode(fields$.get(0).getValue());
+      String host = PrimitiveValueDecoders.fromParty.decode(fields$.get(1).getValue());
+      MIdetails miDetails = MIdetails.valueDecoder().decode(fields$.get(2).getValue());
+      String visitor = PrimitiveValueDecoders.fromParty.decode(fields$.get(3).getValue());
+      String visitDetails = PrimitiveValueDecoders.fromText.decode(fields$.get(4).getValue());
       Set<String> voters = Set.<java.lang.String>valueDecoder(PrimitiveValueDecoders.fromParty)
-          .decode(fields$.get(2).getValue());
-      MI.ContractId miCid =
-          new MI.ContractId(fields$.get(3).getValue().asContractId().orElseThrow(() -> new IllegalArgumentException("Expected miCid to be of type com.daml.ledger.javaapi.data.ContractId")).getValue());
+          .decode(fields$.get(5).getValue());
+      MIReport.ContractId miReportCid =
+          new MIReport.ContractId(fields$.get(6).getValue().asContractId().orElseThrow(() -> new IllegalArgumentException("Expected miReportCid to be of type com.daml.ledger.javaapi.data.ContractId")).getValue());
       Set<String> alreadyVoted =
           Set.<java.lang.String>valueDecoder(PrimitiveValueDecoders.fromParty)
-          .decode(fields$.get(4).getValue());
-      AssessmentDetails result = AssessmentDetails.valueDecoder().decode(fields$.get(5).getValue());
-      return new Votation(creator, description, voters, miCid, alreadyVoted, result);
+          .decode(fields$.get(7).getValue());
+      AssessmentDetails result = AssessmentDetails.valueDecoder().decode(fields$.get(8).getValue());
+      return new Votation(tenant, host, miDetails, visitor, visitDetails, voters, miReportCid,
+          alreadyVoted, result);
     } ;
   }
 
   public static JsonLfDecoder<Votation> jsonDecoder() {
-    return JsonLfDecoders.record(Arrays.asList("creator", "description", "voters", "miCid", "alreadyVoted", "result"), name -> {
+    return JsonLfDecoders.record(Arrays.asList("tenant", "host", "miDetails", "visitor", "visitDetails", "voters", "miReportCid", "alreadyVoted", "result"), name -> {
           switch (name) {
-            case "creator": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
-            case "description": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.text);
-            case "voters": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(2, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
-            case "miCid": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.contractId(rentingPlatform.codegen.platform.leaseagreement.modelmi.MI.ContractId::new));
-            case "alreadyVoted": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(4, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
-            case "result": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(5, rentingPlatform.codegen.platform.types.mi.AssessmentDetails.jsonDecoder());
+            case "tenant": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
+            case "host": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
+            case "miDetails": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(2, rentingPlatform.codegen.platform.types.mi.MIdetails.jsonDecoder());
+            case "visitor": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
+            case "visitDetails": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(4, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.text);
+            case "voters": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(5, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
+            case "miReportCid": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(6, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.contractId(rentingPlatform.codegen.platform.leaseagreement.modelmi.MIReport.ContractId::new));
+            case "alreadyVoted": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(7, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
+            case "result": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(8, rentingPlatform.codegen.platform.types.mi.AssessmentDetails.jsonDecoder());
             default: return null;
           }
         }
-        , (Object[] args) -> new Votation(JsonLfDecoders.cast(args[0]), JsonLfDecoders.cast(args[1]), JsonLfDecoders.cast(args[2]), JsonLfDecoders.cast(args[3]), JsonLfDecoders.cast(args[4]), JsonLfDecoders.cast(args[5])));
+        , (Object[] args) -> new Votation(JsonLfDecoders.cast(args[0]), JsonLfDecoders.cast(args[1]), JsonLfDecoders.cast(args[2]), JsonLfDecoders.cast(args[3]), JsonLfDecoders.cast(args[4]), JsonLfDecoders.cast(args[5]), JsonLfDecoders.cast(args[6]), JsonLfDecoders.cast(args[7]), JsonLfDecoders.cast(args[8])));
   }
 
   public static Votation fromJson(String json) throws JsonLfDecoder.Error {
@@ -218,10 +243,13 @@ public final class Votation extends Template {
 
   public JsonLfEncoder jsonEncoder() {
     return JsonLfEncoders.record(
-        JsonLfEncoders.Field.of("creator", apply(JsonLfEncoders::party, creator)),
-        JsonLfEncoders.Field.of("description", apply(JsonLfEncoders::text, description)),
+        JsonLfEncoders.Field.of("tenant", apply(JsonLfEncoders::party, tenant)),
+        JsonLfEncoders.Field.of("host", apply(JsonLfEncoders::party, host)),
+        JsonLfEncoders.Field.of("miDetails", apply(MIdetails::jsonEncoder, miDetails)),
+        JsonLfEncoders.Field.of("visitor", apply(JsonLfEncoders::party, visitor)),
+        JsonLfEncoders.Field.of("visitDetails", apply(JsonLfEncoders::text, visitDetails)),
         JsonLfEncoders.Field.of("voters", apply(_x0 -> _x0.jsonEncoder(JsonLfEncoders::party), voters)),
-        JsonLfEncoders.Field.of("miCid", apply(JsonLfEncoders::contractId, miCid)),
+        JsonLfEncoders.Field.of("miReportCid", apply(JsonLfEncoders::contractId, miReportCid)),
         JsonLfEncoders.Field.of("alreadyVoted", apply(_x0 -> _x0.jsonEncoder(JsonLfEncoders::party), alreadyVoted)),
         JsonLfEncoders.Field.of("result", apply(AssessmentDetails::jsonEncoder, result)));
   }
@@ -242,23 +270,27 @@ public final class Votation extends Template {
       return false;
     }
     Votation other = (Votation) object;
-    return Objects.equals(this.creator, other.creator) &&
-        Objects.equals(this.description, other.description) &&
-        Objects.equals(this.voters, other.voters) && Objects.equals(this.miCid, other.miCid) &&
+    return Objects.equals(this.tenant, other.tenant) && Objects.equals(this.host, other.host) &&
+        Objects.equals(this.miDetails, other.miDetails) &&
+        Objects.equals(this.visitor, other.visitor) &&
+        Objects.equals(this.visitDetails, other.visitDetails) &&
+        Objects.equals(this.voters, other.voters) &&
+        Objects.equals(this.miReportCid, other.miReportCid) &&
         Objects.equals(this.alreadyVoted, other.alreadyVoted) &&
         Objects.equals(this.result, other.result);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.creator, this.description, this.voters, this.miCid, this.alreadyVoted,
-        this.result);
+    return Objects.hash(this.tenant, this.host, this.miDetails, this.visitor, this.visitDetails,
+        this.voters, this.miReportCid, this.alreadyVoted, this.result);
   }
 
   @Override
   public String toString() {
-    return String.format("rentingPlatform.codegen.platform.leaseagreement.modelmi.Votation(%s, %s, %s, %s, %s, %s)",
-        this.creator, this.description, this.voters, this.miCid, this.alreadyVoted, this.result);
+    return String.format("rentingPlatform.codegen.platform.leaseagreement.modelmi.Votation(%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        this.tenant, this.host, this.miDetails, this.visitor, this.visitDetails, this.voters,
+        this.miReportCid, this.alreadyVoted, this.result);
   }
 
   public static final class ContractId extends com.daml.ledger.javaapi.data.codegen.ContractId<Votation> implements Exercises<ExerciseCommand> {
@@ -301,6 +333,15 @@ public final class Votation extends Template {
   }
 
   public interface Exercises<Cmd> extends com.daml.ledger.javaapi.data.codegen.Exercises.Archive<Cmd> {
+    default Update<Exercised<Unit>> exerciseArchive(
+        rentingPlatform.codegen.da.internal.template.Archive arg) {
+      return makeExerciseCmd(CHOICE_Archive, arg);
+    }
+
+    default Update<Exercised<Unit>> exerciseArchive() {
+      return exerciseArchive(new rentingPlatform.codegen.da.internal.template.Archive());
+    }
+
     default Update<Exercised<ContractId>> exerciseVote(Vote arg) {
       return makeExerciseCmd(CHOICE_Vote, arg);
     }
@@ -309,21 +350,14 @@ public final class Votation extends Template {
       return exerciseVote(new Vote(voter, vote));
     }
 
-    default Update<Exercised<MI.ContractId>> exerciseFinalizeVotation(FinalizeVotation arg) {
+    default Update<Exercised<MIresultArbitrators.ContractId>> exerciseFinalizeVotation(
+        FinalizeVotation arg) {
       return makeExerciseCmd(CHOICE_FinalizeVotation, arg);
     }
 
-    default Update<Exercised<MI.ContractId>> exerciseFinalizeVotation(String finalizer) {
+    default Update<Exercised<MIresultArbitrators.ContractId>> exerciseFinalizeVotation(
+        String finalizer) {
       return exerciseFinalizeVotation(new FinalizeVotation(finalizer));
-    }
-
-    default Update<Exercised<Unit>> exerciseArchive(
-        rentingPlatform.codegen.da.internal.template.Archive arg) {
-      return makeExerciseCmd(CHOICE_Archive, arg);
-    }
-
-    default Update<Exercised<Unit>> exerciseArchive() {
-      return exerciseArchive(new rentingPlatform.codegen.da.internal.template.Archive());
     }
   }
 

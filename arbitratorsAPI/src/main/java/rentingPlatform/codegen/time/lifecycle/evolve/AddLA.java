@@ -23,7 +23,7 @@ import java.util.Objects;
 import rentingPlatform.codegen.platform.types.la.LAkey;
 
 public class AddLA extends DamlRecord<AddLA> {
-  public static final String _packageId = "b80ed0eb60b6c3d918d4f24fbb5689a03c7ad2642b523a689de07104f792b41f";
+  public static final String _packageId = "b1c69ded5e6f9b3209adda4613b08585e35d988f49cc818e5af8942f840887f7";
 
   public final LAkey laKey;
 

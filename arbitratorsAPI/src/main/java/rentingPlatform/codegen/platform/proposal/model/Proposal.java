@@ -43,7 +43,7 @@ import rentingPlatform.codegen.platform.types.common.House;
 import rentingPlatform.codegen.platform.types.common.LeaseTerms;
 
 public final class Proposal extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("b80ed0eb60b6c3d918d4f24fbb5689a03c7ad2642b523a689de07104f792b41f", "Platform.Proposal.Model", "Proposal");
+  public static final Identifier TEMPLATE_ID = new Identifier("b1c69ded5e6f9b3209adda4613b08585e35d988f49cc818e5af8942f840887f7", "Platform.Proposal.Model", "Proposal");
 
   public static final Choice<Proposal, Sign, ContractId> CHOICE_Sign = 
       Choice.create("Sign", value$ -> value$.toValue(), value$ -> Sign.valueDecoder()

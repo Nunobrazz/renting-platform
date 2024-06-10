@@ -2,7 +2,6 @@ package rentingPlatform.codegen.platform.types.mi;
 
 import static com.daml.ledger.javaapi.data.codegen.json.JsonLfEncoders.apply;
 
-import com.daml.ledger.javaapi.data.DamlOptional;
 import com.daml.ledger.javaapi.data.Date;
 import com.daml.ledger.javaapi.data.Int64;
 import com.daml.ledger.javaapi.data.Value;
@@ -25,21 +24,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 public class AssessmentDetails extends DamlRecord<AssessmentDetails> {
-  public static final String _packageId = "b80ed0eb60b6c3d918d4f24fbb5689a03c7ad2642b523a689de07104f792b41f";
+  public static final String _packageId = "b1c69ded5e6f9b3209adda4613b08585e35d988f49cc818e5af8942f840887f7";
 
   public final Responsability responsability;
 
-  public final Optional<Long> cost;
+  public final Long cost;
 
   public final LocalDate assessmentDate;
 
-  public final Optional<LocalDate> reparationDate;
+  public final LocalDate reparationDate;
 
-  public AssessmentDetails(Responsability responsability, Optional<Long> cost,
-      LocalDate assessmentDate, Optional<LocalDate> reparationDate) {
+  public AssessmentDetails(Responsability responsability, Long cost, LocalDate assessmentDate,
+      LocalDate reparationDate) {
     this.responsability = responsability;
     this.cost = cost;
     this.assessmentDate = assessmentDate;
@@ -57,15 +55,13 @@ public class AssessmentDetails extends DamlRecord<AssessmentDetails> {
   public static ValueDecoder<AssessmentDetails> valueDecoder() throws IllegalArgumentException {
     return value$ -> {
       Value recordValue$ = value$;
-      List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(4,1,
+      List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(4,0,
           recordValue$);
       Responsability responsability = Responsability.valueDecoder()
           .decode(fields$.get(0).getValue());
-      Optional<Long> cost = PrimitiveValueDecoders.fromOptional(PrimitiveValueDecoders.fromInt64)
-          .decode(fields$.get(1).getValue());
+      Long cost = PrimitiveValueDecoders.fromInt64.decode(fields$.get(1).getValue());
       LocalDate assessmentDate = PrimitiveValueDecoders.fromDate.decode(fields$.get(2).getValue());
-      Optional<LocalDate> reparationDate = PrimitiveValueDecoders.fromOptional(
-            PrimitiveValueDecoders.fromDate).decode(fields$.get(3).getValue());
+      LocalDate reparationDate = PrimitiveValueDecoders.fromDate.decode(fields$.get(3).getValue());
       return new AssessmentDetails(responsability, cost, assessmentDate, reparationDate);
     } ;
   }
@@ -73,9 +69,9 @@ public class AssessmentDetails extends DamlRecord<AssessmentDetails> {
   public com.daml.ledger.javaapi.data.DamlRecord toValue() {
     ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field> fields = new ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field>(4);
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("responsability", this.responsability.toValue()));
-    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("cost", DamlOptional.of(this.cost.map(v$0 -> new Int64(v$0)))));
+    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("cost", new Int64(this.cost)));
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("assessmentDate", new Date((int) this.assessmentDate.toEpochDay())));
-    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("reparationDate", DamlOptional.of(this.reparationDate.map(v$0 -> new Date((int) v$0.toEpochDay())))));
+    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("reparationDate", new Date((int) this.reparationDate.toEpochDay())));
     return new com.daml.ledger.javaapi.data.DamlRecord(fields);
   }
 
@@ -83,9 +79,9 @@ public class AssessmentDetails extends DamlRecord<AssessmentDetails> {
     return JsonLfDecoders.record(Arrays.asList("responsability", "cost", "assessmentDate", "reparationDate"), name -> {
           switch (name) {
             case "responsability": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, rentingPlatform.codegen.platform.types.mi.Responsability.jsonDecoder());
-            case "cost": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.optional(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.int64));
+            case "cost": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.int64);
             case "assessmentDate": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(2, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.date);
-            case "reparationDate": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.optional(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.date));
+            case "reparationDate": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.date);
             default: return null;
           }
         }
@@ -99,9 +95,9 @@ public class AssessmentDetails extends DamlRecord<AssessmentDetails> {
   public JsonLfEncoder jsonEncoder() {
     return JsonLfEncoders.record(
         JsonLfEncoders.Field.of("responsability", apply(Responsability::jsonEncoder, responsability)),
-        JsonLfEncoders.Field.of("cost", apply(JsonLfEncoders.optional(JsonLfEncoders::int64), cost)),
+        JsonLfEncoders.Field.of("cost", apply(JsonLfEncoders::int64, cost)),
         JsonLfEncoders.Field.of("assessmentDate", apply(JsonLfEncoders::date, assessmentDate)),
-        JsonLfEncoders.Field.of("reparationDate", apply(JsonLfEncoders.optional(JsonLfEncoders::date), reparationDate)));
+        JsonLfEncoders.Field.of("reparationDate", apply(JsonLfEncoders::date, reparationDate)));
   }
 
   @Override

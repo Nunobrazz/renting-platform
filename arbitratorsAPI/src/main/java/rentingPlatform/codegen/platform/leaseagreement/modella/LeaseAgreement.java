@@ -47,7 +47,7 @@ import rentingPlatform.codegen.platform.types.common.LeaseTerms;
 import rentingPlatform.codegen.platform.types.la.LAkey;
 
 public final class LeaseAgreement extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("b80ed0eb60b6c3d918d4f24fbb5689a03c7ad2642b523a689de07104f792b41f", "Platform.LeaseAgreement.ModelLA", "LeaseAgreement");
+  public static final Identifier TEMPLATE_ID = new Identifier("b1c69ded5e6f9b3209adda4613b08585e35d988f49cc818e5af8942f840887f7", "Platform.LeaseAgreement.ModelLA", "LeaseAgreement");
 
   public static final Choice<LeaseAgreement, rentingPlatform.codegen.da.internal.template.Archive, Unit> CHOICE_Archive = 
       Choice.create("Archive", value$ -> value$.toValue(), value$ ->

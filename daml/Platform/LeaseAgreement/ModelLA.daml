@@ -21,8 +21,7 @@ template LeaseAgreement
   where
     signatory operator, tenant, house.host   
     observer lifecycler
-    ensure not (leaseTerms.paymentDates /= [] && leaseTerms.beginingDate >= head leaseTerms.paymentDates)
-    
+    ensure (not (leaseTerms.paymentDates /= [] && leaseTerms.beginingDate >= head leaseTerms.paymentDates)) && leaseTerms.nArbitrators > 0
     key LAkey with tenant, house : (LAkey)
     maintainer key.tenant, key.house.host
 
