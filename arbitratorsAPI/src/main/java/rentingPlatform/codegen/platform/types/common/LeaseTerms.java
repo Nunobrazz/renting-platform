@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class LeaseTerms extends DamlRecord<LeaseTerms> {
-  public static final String _packageId = "b1c69ded5e6f9b3209adda4613b08585e35d988f49cc818e5af8942f840887f7";
+  public static final String _packageId = "4675aeb82c69164a49c2076e977f81eed1ed248ab4cb6bca91f769e1194714b0";
 
   public final Long agreedRent;
 

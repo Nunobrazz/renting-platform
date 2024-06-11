@@ -42,6 +42,8 @@ public class Arbitrator {
 
     ledger.getInvitationsCurrentState();    
     ledger.probeInvitations();
+    ledger.probeMIReports();
+    ledger.probeVotations();
     
     while (true) {
       io.displayMenu();

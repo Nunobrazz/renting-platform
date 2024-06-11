@@ -78,16 +78,50 @@ public class LedgerCommunication {
             response.offset.ifPresent(offset -> acsOffset.set(new LedgerOffset.Absolute(offset)));
             response.activeContracts.forEach(
                 contract -> {
+
                   long id = InvitationsIdCounter.getAndIncrement();
-                  if (contract.data.miDetails.nArbitrators > contract.data.invited.map.size()){ // Not complete invitations only
+
+                  if (contract.data.miDetails.nArbitrators > contract.data.confirmed.map.size()){ // Not complete invitations only
                     invitations.put(id, contract.data);
                     invitationIds.put(id, contract.id);
                   }
                 });
           });
-      InvitationsIdCounter.set(0);
     }
 
+    public void getMIReportCurrentState(){
+      client
+      .getActiveContractSetClient()
+      .getActiveContracts(MIReport.contractFilter(), Collections.singleton(individualParty), true)
+      .blockingForEach(
+          response -> {
+            response.offset.ifPresent(offset -> acsOffset.set(new LedgerOffset.Absolute(offset)));
+            response.activeContracts.forEach(
+                contract -> {
+                  long id = MIReportsIdCounter.getAndIncrement();
+                    miRep.put(id, contract.data);
+                    miRepIds.put(id, contract.id);
+                });
+          });
+    }
+
+    public void getVotationCurrentState(){
+      client
+      .getActiveContractSetClient()
+      .getActiveContracts(Votation.contractFilter(), Collections.singleton(individualParty), true)
+      .blockingForEach(
+          response -> {
+            response.offset.ifPresent(offset -> acsOffset.set(new LedgerOffset.Absolute(offset)));
+            response.activeContracts.forEach(
+                contract -> {
+                  long id = miRepIds.inverse().get(contract.data.miReportCid); // Syncronize Votations with MI Reports
+                  votations.put(id, contract.data);
+                  votationIds.put(id, contract.id);
+                });
+          });
+      MIReportsIdCounter.set(0);
+    }
+    
     public void probeInvitations(){
       
       client
@@ -101,10 +135,12 @@ public class LedgerCommunication {
                     CreatedEvent createdEvent = (CreatedEvent) event;
                     long id = InvitationsIdCounter.getAndIncrement();
                     InviteArbitrators.Contract contract = InviteArbitrators.Contract.fromCreatedEvent(createdEvent);
+                    System.out.printf(contract.toString());
+
                     if (contract.data.miDetails.nArbitrators > contract.data.invited.map.size()){   // Not complete invitations only
                       invitations.put(id, contract.data);
                       invitationIds.put(id, contract.id);
-                      System.out.printf("New invitation update.");
+                      System.out.printf("New invitation update.\n");
                     }
                   } else if (event instanceof ArchivedEvent) {
                     ArchivedEvent archivedEvent = (ArchivedEvent) event;
@@ -112,7 +148,7 @@ public class LedgerCommunication {
                         invitationIds.inverse().get(new InviteArbitrators.ContractId(archivedEvent.getContractId()));
                     invitations.remove(id);
                     invitationIds.remove(id);
-                    System.out.printf("One invitation was terminated.");
+                    System.out.printf("One invitation was terminated.\n");
                   }
                 }
                 });
@@ -134,14 +170,14 @@ public class LedgerCommunication {
                     MIReport.Contract contract = MIReport.Contract.fromCreatedEvent(createdEvent);
                     miRep.put(id, contract.data);
                     miRepIds.put(id, contract.id);
-                    System.out.printf("You have been added to a new MI!");
+                    System.out.printf("You have been added to a new MI!\n");
                   } else if (event instanceof ArchivedEvent) {
                     ArchivedEvent archivedEvent = (ArchivedEvent) event; 
                     long id =
                         miRepIds.inverse().get(new MIReport.ContractId(archivedEvent.getContractId()));
                     miRep.remove(id);
                     miRepIds.remove(id);
-                    System.out.printf("One MI Report was archived!");
+                    System.out.printf("One MI Report was archived!\n");
                   }
                 }
                 });
@@ -164,14 +200,14 @@ public class LedgerCommunication {
                     long id = miRepIds.inverse().get(contract.data.miReportCid); // Syncronize Votations with MI Reports
                     votations.put(id, contract.data);
                     votationIds.put(id, contract.id);
-                    System.out.printf("One votation has been created!");
+                    System.out.printf("One votation has been created!\n");
                   } else if (event instanceof ArchivedEvent) {
                     ArchivedEvent archivedEvent = (ArchivedEvent) event; 
                     long id =
                           votationIds.inverse().get(new Votation.ContractId(archivedEvent.getContractId()));
                     votations.remove(id);
                     votationIds.remove(id);
-                    System.out.printf("One votation has been terminated.");
+                    System.out.printf("One votation has been terminated.\n");
                   }
                 }
                 });
@@ -180,6 +216,9 @@ public class LedgerCommunication {
     public void searchInvitations(){
       
       long choice = io.invitationChoice(invitations, invitationIds);
+      
+      if (choice == -1)
+        return;
 
       var update = invitationIds.get(choice).exerciseAccept(individualParty);
       submit(client, individualParty, update);   
@@ -191,20 +230,25 @@ public class LedgerCommunication {
 
     public void createVotation(){
 
-      long miId = io.miChoice(miRep, miRepIds);
+      long id = io.miChoice(miRep, miRepIds);
+            
+      if (id == -1)
+        return;
       String visitDetails = io.askVisitDetails();
       AssessmentDetails assessment = io.askAssessmentDetails();
 
-      var update = miRepIds.get(miId).exerciseCreateVotation(individualParty, visitDetails, assessment);
+      var update = miRepIds.get(id).exerciseCreateVotation(individualParty, visitDetails, assessment);
       submit(client, individualParty, update);   
     }
     
     public void submitVote(){
-      long miId = io.miChoice(miRep, miRepIds);
 
+      long id = io.miChoice(miRep, miRepIds);
+      if (id == -1)
+      return;
       Responsability vote = io.askVote();
 
-      var update = votationIds.get(miId).exerciseVote(individualParty, vote);
+      var update = votationIds.get(id).exerciseVote(individualParty, vote);
       submit(client, individualParty, update);   
 
     }

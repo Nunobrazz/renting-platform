@@ -42,7 +42,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public final class User extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("b1c69ded5e6f9b3209adda4613b08585e35d988f49cc818e5af8942f840887f7", "User", "User");
+  public static final Identifier TEMPLATE_ID = new Identifier("4675aeb82c69164a49c2076e977f81eed1ed248ab4cb6bca91f769e1194714b0", "User", "User");
 
   public static final Choice<User, Follow, ContractId> CHOICE_Follow = 
       Choice.create("Follow", value$ -> value$.toValue(), value$ -> Follow.valueDecoder()

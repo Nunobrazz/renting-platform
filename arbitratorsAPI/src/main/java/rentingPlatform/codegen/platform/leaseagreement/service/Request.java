@@ -41,7 +41,7 @@ import rentingPlatform.codegen.platform.types.common.House;
 import rentingPlatform.codegen.platform.types.common.LeaseTerms;
 
 public final class Request extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("b1c69ded5e6f9b3209adda4613b08585e35d988f49cc818e5af8942f840887f7", "Platform.LeaseAgreement.Service", "Request");
+  public static final Identifier TEMPLATE_ID = new Identifier("4675aeb82c69164a49c2076e977f81eed1ed248ab4cb6bca91f769e1194714b0", "Platform.LeaseAgreement.Service", "Request");
 
   public static final Choice<Request, Withdraw, Unit> CHOICE_Withdraw = 
       Choice.create("Withdraw", value$ -> value$.toValue(), value$ -> Withdraw.valueDecoder()

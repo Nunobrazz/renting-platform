@@ -56,7 +56,7 @@ template InviteArbitrators     -- arbitrators recieve notifications when others 
     choice Accept : ()
       with 
         arbitrator : Party
-      controller invited
+      controller arbitrator
       do
         assertMsg "The Party is already confirmed in the MI." (S.notMember arbitrator confirmed)
         assertMsg "Impossible to accept because the number of arbitrators has been matched." (S.size confirmed < miDetails.nArbitrators)
@@ -85,7 +85,7 @@ template Votation
     visitDetails : Text
     voters : Parties  
     miReportCid : ContractId MIReport
-    alreadyVoted : Parties
+    alreadyVoted : Parties 
     result : AssessmentDetails
   where 
     signatory alreadyVoted, tenant, host -- Both MI parts agree with the votation

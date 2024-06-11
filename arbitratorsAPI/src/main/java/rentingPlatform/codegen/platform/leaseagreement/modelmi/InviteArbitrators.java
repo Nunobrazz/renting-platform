@@ -40,7 +40,7 @@ import rentingPlatform.codegen.da.set.types.Set;
 import rentingPlatform.codegen.platform.types.mi.MIdetails;
 
 public final class InviteArbitrators extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("b1c69ded5e6f9b3209adda4613b08585e35d988f49cc818e5af8942f840887f7", "Platform.LeaseAgreement.ModelMI", "InviteArbitrators");
+  public static final Identifier TEMPLATE_ID = new Identifier("4675aeb82c69164a49c2076e977f81eed1ed248ab4cb6bca91f769e1194714b0", "Platform.LeaseAgreement.ModelMI", "InviteArbitrators");
 
   public static final Choice<InviteArbitrators, rentingPlatform.codegen.da.internal.template.Archive, Unit> CHOICE_Archive = 
       Choice.create("Archive", value$ -> value$.toValue(), value$ ->

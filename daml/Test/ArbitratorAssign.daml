@@ -40,7 +40,7 @@ assignment = do
     exerciseCmd contracts.laServiceCid LA.CreateMI with reporter=bob; house; startingDate = date 2024 May 19; description = "Broken chair"
 
   invitationCid <- submit bob do 
-    exerciseCmd contracts.laServiceCid LA.InvokeArbitrators with inviter=bob;invited ;miReportCid
+    exerciseCmd contracts.laServiceCid LA.InvokeArbitrators with inviter=bob;invited; miReportCid
   
   
 

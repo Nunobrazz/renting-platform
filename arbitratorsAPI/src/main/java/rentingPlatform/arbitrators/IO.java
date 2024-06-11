@@ -24,10 +24,10 @@ public class IO {
   }
 
   public void displayMenu() {
-    System.out.printf("1. Enroll in unassigned MIs\n");
+    System.out.printf("\n1. Enroll in unassigned MIs\n");
     System.out.printf("2. Create Votation\n");
     System.out.printf("3. Submit Vote\n");
-    System.out.printf("------\n\n");
+    System.out.printf("------\n");
   }
 
 
@@ -37,9 +37,26 @@ public class IO {
     System.out.printf("   Description: %s\n", miDetails.description.toString());
     System.out.printf("   Starting Date: %s\n", miDetails.startingDate.toString());
     System.out.printf("   Number of arbitrators to be assigned: %s\n", miDetails.nArbitrators.toString());
-    System.out.printf("------\n\n");
+    System.out.printf("------\n");
   }
 
+  public long invitationChoice(ConcurrentHashMap<Long, InviteArbitrators> invitations, BiMap<Long, InviteArbitrators.ContractId>  invitationsCids) {
+   
+    if (invitations.isEmpty()){
+      System.out.printf("There are no available Invitations.\n"); 
+      return -1;
+    }
+
+    invitations.forEach((id, invitation) -> {  
+      displayMIdetails(id, invitation.miDetails); 
+    });
+
+    System.out.printf("> Select MI Invitation ID: "); 
+    long id = sc.nextLong();
+    System.out.printf("> Selected: %s\n", invitationsCids.get(id).toString());
+
+    return id;
+  }
 
 
 
@@ -91,21 +108,15 @@ public class IO {
 
 
 
-  public long invitationChoice(ConcurrentHashMap<Long, InviteArbitrators> invitations, BiMap<Long, InviteArbitrators.ContractId>  invitationsCids) {
-   
-    invitations.forEach((id, invitation) -> {  
-      displayMIdetails(id, invitation.miDetails); 
-    });
 
-    System.out.printf("> Select MI Invitation ID: "); 
-    long id = sc.nextLong();
-    System.out.printf("> Selected: %s\n", invitationsCids.get(id).toString());
-
-    return id;
-  }
 
   public long miChoice(ConcurrentHashMap<Long, MIReport> miReps, BiMap<Long, MIReport.ContractId>  miRepCids) {
-   
+    
+    if (miReps.isEmpty()){
+      System.out.printf("There are no available MI Reports.\n"); 
+      return -1;
+    }
+    
     miReps.forEach((id, miReport) -> {  
       displayMIdetails(id, miReport.miDetails); 
     });

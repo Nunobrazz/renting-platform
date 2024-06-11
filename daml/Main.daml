@@ -1,11 +1,13 @@
 module Main where
 
+import qualified DA.Set as S
 
 import Test.LAcreation 
 import Daml.Script
 import DA.Date
 import Platform.Types.LA 
-import Platform.LeaseAgreement.Service qualified as LA (CreateMI(..))
+import Platform.LeaseAgreement.Service
+import Platform.LeaseAgreement.ModelMI
 
 initialize : Script (Party, Party,Party)
 initialize = do
@@ -17,10 +19,10 @@ initialize = do
 
   -- Bob creates MI  Should be bob or host inviting arbitrators
   miReportCid <- submit parties.bob do 
-    exerciseCmd contracts.laServiceCid LA.CreateMI with reporter=parties.bob; house; startingDate = date 2024 May 19; description = "Broken chair"
+    exerciseCmd contracts.laServiceCid CreateMI with reporter=parties.bob; house; startingDate = date 2024 May 19; description = "Broken chair"
 
 
-
+  arbitrator2 <- allocateParty "arbitrator2"
   aliceId <- validateUserId "alice"
   bobId <- validateUserId "bob"
   operatorId <- validateUserId "operator"
@@ -34,6 +36,13 @@ initialize = do
   createUser (User arbitrator1Id (Some parties.arbitrator1)) [CanActAs parties.arbitrator1]
   
   
+
+  invitationCid <- submit parties.bob do 
+    exerciseCmd contracts.laServiceCid InvokeArbitrators with inviter=parties.bob; invited = S.fromList [parties.arbitrator1, arbitrator2]; miReportCid
+
+
+  invitationCid <- submit arbitrator2 do 
+    exerciseCmd invitationCid Accept with arbitrator=arbitrator2
 
 {--  passTime (T.days 1)
 
