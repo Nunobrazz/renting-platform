@@ -6,8 +6,8 @@ import Platform.Types.Common
 
 data Responsability=Responsability 
   with
-    reporterResp : Int
-    counterpartResp : Int
+    tenantResp : Int
+    hostResp : Int
     --companyResp   if company resp exists someone from there has to sign
   deriving (Eq, Show)
 

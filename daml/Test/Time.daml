@@ -1,0 +1,52 @@
+module Test.Time where
+
+
+import qualified DA.Set as S
+import DA.Date
+
+import Daml.Script
+import Test.LAcreation 
+import Time.Clock
+
+
+
+
+time = do
+    
+  (parties, contracts, house, leaseTerms) <- laCreation
+
+
+  let 
+      timeProvider1 = parties.timeProvider1
+      timeProvider2 = parties.timeProvider2
+      timeProvider3 = parties.timeProvider3
+      operator = parties.operator
+      waitingAccept = S.fromList [timeProvider1,timeProvider2, timeProvider3]
+  
+  now <- getTime
+
+  dateClockCid <- submit operator do
+    createCmd DateClock with operator; providers=[]; clockDate=toDateUTC now; public= parties.public; waitingAccept
+  
+  dateClockCid <- submit timeProvider1 do
+    exerciseCmd dateClockCid Accept with newProvider = timeProvider1
+
+  dateClockCid <- submit timeProvider2 do
+    exerciseCmd dateClockCid Accept with newProvider = timeProvider2
+
+  dateClockCid <- submit timeProvider3 do
+    exerciseCmd dateClockCid Accept with newProvider = timeProvider3
+
+  
+  
+  dateClockCid <- submit timeProvider3 do
+    exerciseCmd dateClockCid Advance with advancer = timeProvider3
+
+  dateClockCid <- submit timeProvider2 do
+    exerciseCmd dateClockCid Advance with advancer = timeProvider2
+
+  dateClockCid <- submit timeProvider1 do
+    exerciseCmd dateClockCid Advance with advancer = timeProvider1
+
+  pure (parties, contracts, house, leaseTerms) 
+

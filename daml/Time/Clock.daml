@@ -1,20 +1,17 @@
 module Time.Clock where 
 
 
-import DA.Date (addDays, toDateUTC)
+import DA.Date (addDays)
 import Types.Common (Parties)
-
--- host should do lifecycle
-
-
+import DA.List qualified as L
+import DA.Set qualified as S
 
 
 
-
--- | Event signalling the update of a `DateClock`. 
+{-- | Event signalling the update of a `DateClock`. 
 template DateClockUpdateEvent
   with
-    provider : Party
+    creator : Party
       -- ^ Provider of the event.
     eventDate : Date
       -- ^ The event time.
@@ -23,62 +20,75 @@ template DateClockUpdateEvent
     observers : Parties
       -- ^ The clock's observers.
   where
-    signatory provider
+    signatory creator
     observer observers  
-    key (provider, eventDate) : (Party, Date)
+    key (creator, eventDate) : (Party, Date)
     maintainer key._1
-
+--}
 
 -- | Used to keep track of the current date.
 template DateClock
   with
-    provider : Party
+    operator : Party
+
+    providers : [Party]
       -- ^ The clock's provider.
     clockDate : Date
       -- ^ The clock's date.
-    -- id : Id
-      -- ^ The clock's identifier if we use different timezones 
-    description : Text
-      -- ^ The clock's description.
-    observers : Parties
+    public : Party
       -- ^ Observers.
+    waitingAccept : Parties
   where
-    signatory provider
-    observer observers
+    signatory providers, operator
+    observer waitingAccept
 
+    -- if a new provider is added it should be the next one to advance
+    choice AddProvider : ContractId DateClock
+      with 
+        newProvider : Party
+      controller operator
+      do 
+        create this with waitingAccept = S.insert newProvider waitingAccept 
+    
+    choice Accept : ContractId DateClock
+      with 
+        newProvider : Party
+      controller newProvider
+      do 
+        create this with providers = newProvider :: providers
 
     nonconsuming choice Advance : ContractId DateClock
         -- ^ Advance time to its next state.
         with
-          --eventId : Id
-            -- ^ Event identifier.
-          days : Int
-            -- ^ Days to advance
-        controller provider
+          advancer : Party
+        controller advancer
         do
-          now <- getTime
-          let today = toDateUTC now
-          assertMsg "Provided time doesnt match with ledger time" ((addDays clockDate days) == today)
-          moveClock this self days
+          assertMsg "Tried to advance clock without permission." (advancer == L.head providers)
+          moveClock this self 1 advancer  
 
 
 -- | HIDE
-moveClock : DateClock -> ContractId DateClock -> Int -> Update (ContractId DateClock)
+moveClock : DateClock -> ContractId DateClock -> Int -> Party -> Update (ContractId DateClock)
 
-moveClock this@DateClock {clockDate; provider; observers} self offset = do -- verificar se tempo esta certo
+moveClock this@DateClock {clockDate; providers} self offset advancer = do 
   let
     newDate = addDays clockDate offset
-    clock = this with clockDate=newDate
+    previousCreator = L.last providers
+    newProviders = L.tail providers ++ [advancer]
+    clock = this with clockDate=newDate; providers = newProviders
+
 
   -- atomic
-  exerciseByKey @DateClockUpdateEvent (provider, clockDate) Archive     -- archive old event
+  -- exerciseByKey @DateClockUpdateEvent (previousCreator, clockDate) Archive   -- archive old event
+
+
   archive self                                                          -- archive clock
   clockCid <- create clock                                              -- create clock
-  _ <- create DateClockUpdateEvent with                                      -- create event
-    provider
+  {--create DateClockUpdateEvent with                                      -- create event
+    creator=advancer
     observers
     eventDate = clock.clockDate
-  -- atomic
+  -- atomic--}
 
   pure clockCid
 

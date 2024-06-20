@@ -4,6 +4,8 @@ import DA.Set qualified as S
 import Types.Common
 import Platform.Types.MI 
 
+import Platform.Util
+
 template MIReport 
   with
     tenant : Party
@@ -25,21 +27,21 @@ template MIReport
       do 
         create this with arbitrators 
     
-    choice CreateVotation : ContractId Votation
+
+    nonconsuming choice CreateVotation : ContractId Votation
       with 
         visitor : Party
         visitDetails : Text
-        assessment : AssessmentDetails
+        vote : Responsability
+        cost : Int
+        assessmentDate : Date
+        reparationDate : Date
       controller visitor
-      do 
-        let 
-          responsability = (Responsability with 
-                              reporterResp=(assessment.responsability.reporterResp/miDetails.nArbitrators), 
-                                counterpartResp=assessment.responsability.counterpartResp/miDetails.nArbitrators) 
+      do           
+        create Votation with tenant, host, miDetails; visitor; visitDetails; voters=arbitrators; miReportCid=self; assessmentDate;reparationDate;cost; alreadyVoted = S.fromList [visitor]; votes = [vote]
 
-          result = AssessmentDetails with responsability, cost=assessment.cost, assessmentDate=assessment.assessmentDate, reparationDate=assessment.reparationDate 
-          
-        create Votation with tenant, host, miDetails; visitor; visitDetails; voters=arbitrators; miReportCid=self; alreadyVoted = S.fromList [visitor]; result
+
+
 
 
 template InviteArbitrators     -- arbitrators recieve notifications when others accept
@@ -53,7 +55,7 @@ template InviteArbitrators     -- arbitrators recieve notifications when others 
     signatory inviter, confirmed
     observer invited
 
-    choice Accept : ()
+    choice Accept : ContractId InviteArbitrators
       with 
         arbitrator : Party
       controller arbitrator
@@ -62,7 +64,6 @@ template InviteArbitrators     -- arbitrators recieve notifications when others 
         assertMsg "Impossible to accept because the number of arbitrators has been matched." (S.size confirmed < miDetails.nArbitrators)
 
         create this with confirmed = S.insert arbitrator confirmed
-        pure()
     
     choice ConfirmAttribution : ContractId MIReport
       with 
@@ -70,7 +71,6 @@ template InviteArbitrators     -- arbitrators recieve notifications when others 
       controller inviter
       do
         assertMsg "The expected number of arbitrators has not been reached." (S.size confirmed == miDetails.nArbitrators)
-
         exercise miReportCid SetArbitrators with inviter; arbitrators=confirmed
 
 
@@ -81,12 +81,15 @@ template Votation
     tenant : Party
     host : Party
     miDetails : MIdetails
-    visitor : Party -- can have several
+    visitor : Party -- may have several
     visitDetails : Text
+    assessmentDate : Date
+    reparationDate : Date
+    cost: Int 
     voters : Parties  
     miReportCid : ContractId MIReport
     alreadyVoted : Parties 
-    result : AssessmentDetails
+    votes : [Responsability]
   where 
     signatory alreadyVoted, tenant, host -- Both MI parts agree with the votation
     observer  voters
@@ -98,14 +101,9 @@ template Votation
         vote : Responsability
       controller voter
         do
-          assert (S.member voter (toVote this))
-          let newReporterResp = result.responsability.reporterResp + vote.reporterResp / (S.size voters)
-              newCounterpartResp = result.responsability.counterpartResp + vote.counterpartResp / (S.size voters)
-              responsability = Responsability with reporterResp=newReporterResp, counterpartResp=newCounterpartResp
+          assertMsg "This party already submitted his vote." (S.member voter (toVote this)) 
+          create Votation with tenant; host; miDetails; visitor; visitDetails; voters; miReportCid;assessmentDate;reparationDate; cost; alreadyVoted = S.insert voter voters; votes=vote :: votes
 
-              newResult = AssessmentDetails with responsability, cost=result.cost, assessmentDate=result.assessmentDate, reparationDate=result.reparationDate 
-          
-          create Votation with tenant; host; miDetails; visitor; visitDetails; voters; miReportCid; alreadyVoted = S.insert voter voters; result = newResult
 
     choice FinalizeVotation : ContractId MIresultArbitrators
       with 
@@ -114,7 +112,11 @@ template Votation
       do
         assertMsg "Tried to finalize votation with out all votes completed." (alreadyVoted==voters)
         archive miReportCid
-        create MIresultArbitrators with tenant; host; miDetails; arbitrators=voters; visitor; visitDetails; assessment=result
+        let 
+          responsability = doVotesMean votes 
+          assessment = AssessmentDetails with responsability; cost; assessmentDate; reparationDate 
+        
+        create MIresultArbitrators with tenant; host; miDetails; arbitrators=voters; visitor; visitDetails; assessment
 
 
 toVote : Votation -> Parties
@@ -132,18 +134,18 @@ template Assessment
     signer : Party
     assessment : AssessmentDetails
     miDetails : MIdetails
+    miReportCid : ContractId MIReport
   where 
     signatory creator
     observer  signer
-    
-
+    --ensure creator /= signer && (((signer == tenant || signer == host) && (creator == tenant || creator == host)))
     choice SignAssessment : ContractId MIresultFriendly 
       with
         signer : Party
       controller signer
-        do
+        do          
           create MIresultFriendly with assessmentCreator=creator; assessmentSigner=signer; miDetails; assessment
-
+          -- verifcar creator e singer para nao ser o mesmo
 
 
 

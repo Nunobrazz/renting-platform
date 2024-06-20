@@ -5,8 +5,6 @@ import Test.Roles qualified as Roles
 import Platform.Role.Operator qualified as Operator (Role,ApproveProposalServiceRequest(..), ApproveLeaseAgreementService(..))
 import Platform.Proposal.Service qualified as Proposal
 import Platform.LeaseAgreement.Service qualified as LA (Service)
-import Time.Clock
-import Time.Lifecycle.Evolve
 import Platform.Types.Common 
 
 
@@ -15,8 +13,7 @@ data Contracts = Contracts
   with
     operatorRoleCid : ContractId Operator.Role
     laServiceCid : ContractId LA.Service
-    clockCid : ContractId DateClock
-    evolveCid : ContractId Evolve
+
 
 
 laCreation : Script (Roles.Parties, Contracts, House, LeaseTerms)
@@ -29,12 +26,10 @@ laCreation = script do
         operator = parties.operator      
         bob = parties.bob                
         admin = parties.admin            
-        timeProvider = parties.timeProvider
-        arbitrator = parties.arbitrator
+        timeProvider1 = parties.timeProvider1
 
         operatorRoleCid = oldContracts.operatorRoleCid
-        clockCid = oldContracts.clockCid
-        evolveCid = oldContracts.evolveCid
+
         
     -- Bob requests the access to the proposal service
     bobProposalReqCid <- submit bob do
@@ -62,9 +57,9 @@ laCreation = script do
     
     -- Operator Approves bob request for the Lease Agreemnet
     laServiceCid <- submit operator do
-        exerciseCmd operatorRoleCid Operator.ApproveLeaseAgreementService with laServiceReqCid=bobLAreqCid; lifecycler=timeProvider; arbitrator
+        exerciseCmd operatorRoleCid Operator.ApproveLeaseAgreementService with laServiceReqCid=bobLAreqCid; lifecycler=parties.lifecycler
 
 
-    let contracts = Contracts with operatorRoleCid; laServiceCid; clockCid; evolveCid
+    let contracts = Contracts with operatorRoleCid; laServiceCid
 
     return (parties, contracts, house, leaseTerms)

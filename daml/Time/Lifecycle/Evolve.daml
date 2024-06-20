@@ -6,7 +6,7 @@ import DA.Foldable (forA_)
 
 import Platform.Types.LA 
 
-import Time.Clock (DateClockUpdateEvent(..))
+import Time.Clock 
 import Platform.LeaseAgreement.ModelLA
 
 
@@ -32,13 +32,13 @@ template Evolve
     -- The verification of the payment date is done here to interrupt during less time other interactions with the LA-SC
     nonconsuming choice ProcessEvent : ()
       with 
-        eventCid : ContractId DateClockUpdateEvent
+        clockCid : ContractId DateClock
       controller lifecycler
       do 
 
-        DateClockUpdateEvent{eventDate} <- fetch eventCid
+        DateClock{clockDate} <- fetch clockCid
 
         forA_ laKeys (\laKey ->
           do 
-            exerciseByKey @LeaseAgreement laKey ProcessPayment with date = eventDate
+            exerciseByKey @LeaseAgreement laKey ProcessPayment with date = clockDate
           )

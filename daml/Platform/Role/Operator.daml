@@ -1,9 +1,9 @@
 module Platform.Role.Operator where
 
+import Types.Common
 import Platform.Proposal.Service qualified as Proposal (Request, Approve(..), Service)
 import Platform.LeaseAgreement.Service as LeaseAgreement (Request, Approve(..), Service)
-import Platform.LeaseAgreement.ArbitratorsService qualified as Arbitrators 
-
+import Time.Clock
 
 -- The operator role is the one that distributes the roles and aproves some stuff 
 
@@ -33,16 +33,21 @@ template Role
       with 
         laServiceReqCid : ContractId LeaseAgreement.Request
         lifecycler:Party
-        arbitrator:Party
       controller operator
       do 
-        exercise laServiceReqCid LeaseAgreement.Approve with lifecycler; arbitrator
+        exercise laServiceReqCid LeaseAgreement.Approve with lifecycler
     
 
 ---- END ---- LEASE AGREEMENT
 
+    nonconsuming choice InitiateDateClock : ContractId DateClock
+      with 
+        operator : Party
+        providers : [Party]
+        clockDate : Date
+        public : Party
+        waitingAccept : Parties
+      controller operator
+      do
+        create DateClock with operator; providers; clockDate; public; waitingAccept
 
----- BEGIN ---- MAINTENANCE ISSUES
-
-
----- END ---- MAINTENANCE ISSUES

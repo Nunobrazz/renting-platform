@@ -1,9 +1,26 @@
 module Platform.Util where
 
+import DA.List qualified as L
+import Platform.Types.MI 
+
 -- | Fetches a contract, archives it and returns its value.
 fetchAndArchive : (HasArchive a, HasFetch a) => ContractId a -> Update a
 fetchAndArchive cid = do
   c <- fetch cid
   archive cid
   return c
+
+
+
+doVotesMean : [Responsability] -> Responsability
+doVotesMean votes = do
+    let
+      n = L.length votes
+      sumTenantResp = sum (map (.tenantResp) votes)
+      sumHostResp = sum (map (.hostResp) votes)
+      tenantResp = if n == 0 then 0 else sumTenantResp / n
+      hostResp = if n == 0 then 0 else sumHostResp / n
+    
+    Responsability with tenantResp, hostResp
+
 

@@ -15,16 +15,18 @@ data Parties = Parties
     bob: Party
     operator: Party
     admin: Party
-    timeProvider: Party
-    arbitrator: Party
+    timeProvider1: Party
+    timeProvider2: Party
+    timeProvider3: Party
+    lifecycler: Party
     arbitrator1: Party
+    arbitrator2: Party
     public : Party
 
 data Contracts = Contracts
   with
     operatorRoleCid : ContractId Operator.Role
-    clockCid : ContractId DateClock
-    evolveCid : ContractId Evolve
+
 
 init : Script (Parties, Contracts, House, LeaseTerms)
 init = script do 
@@ -33,30 +35,41 @@ init = script do
     operator <- allocatePartyWithHint "Operator" (PartyIdHint "Operator")              
     bob <- allocatePartyWithHint "Bob" (PartyIdHint "Bob")                       
     admin <- allocatePartyWithHint "Admin" (PartyIdHint "Admin")                 
-    timeProvider <- allocatePartyWithHint "TimeProvider" (PartyIdHint "TimeProvider")     
-    arbitrator <- allocatePartyWithHint "Arbitrator" (PartyIdHint "Arbitrator")     
+  
+    timeProvider1 <- allocatePartyWithHint "TimeProvider1" (PartyIdHint "TimeProvider1")  
+    timeProvider2 <- allocatePartyWithHint "TimeProvider2" (PartyIdHint "TimeProvider2")  
+    timeProvider3 <- allocatePartyWithHint "TimeProvider3" (PartyIdHint "TimeProvider3")     
+    lifecycler <- allocatePartyWithHint "Lifecycler" (PartyIdHint "Lifecycler")     
+
     arbitrator1 <- allocatePartyWithHint "Arbitrator1" (PartyIdHint "Arbitrator1")     
+    arbitrator2 <- allocatePartyWithHint "Arbitrator2" (PartyIdHint "Arbitrator2")     
+    
     public <- allocatePartyWithHint "Public" (PartyIdHint "Public")    
 
     now <- getTime
     let house = House with host=alice; address = "Telheiras"; details = "This is a nice house"; listedRent=100 -- bug
         leaseTerms = LeaseTerms with agreedRent=100; beginingDate = date 2024 Jan 2; paymentDates=[date 2024 Jan 3, date 2024 Feb 1, date 2024 Mar 1]; nArbitrators = 2
-        parties = Parties with alice; bob; operator; admin; timeProvider; arbitrator; arbitrator1; public
+        parties = Parties with alice; bob; operator; admin; timeProvider1;timeProvider2;lifecycler; timeProvider3; arbitrator1; arbitrator2; public
         today = toDateUTC now
 
     operatorRoleCid <- submit operator do
       createCmd Operator.Role with operator
     
- 
-    clockCid <- submit timeProvider do
-      createCmd DateClock with provider = timeProvider; clockDate = today; description="Normal Clock"; observers = S.singleton public
-    
-    _<-submit timeProvider do createCmd DateClockUpdateEvent with provider=timeProvider; eventDate=today; observers = S.singleton public
-    
+    dateClockCid <- submit operator do
+      createCmd DateClock with operator; providers=[]; clockDate=toDateUTC now; public= parties.public; waitingAccept=S.fromList [timeProvider1, timeProvider2]
+  
+    dateClockCid <- submit timeProvider1 do
+      exerciseCmd dateClockCid Accept with newProvider = timeProvider1
+
+    dateClockCid <- submit timeProvider2 do
+      exerciseCmd dateClockCid Accept with newProvider = timeProvider2
+
     evolveCid <- submit operator do
-      createCmd Evolve with operator; lifecycler=timeProvider; laKeys = S.empty
+      createCmd Evolve with operator; lifecycler; laKeys = S.empty
 
+    dateClockCid <- submit timeProvider2 do
+      exerciseCmd dateClockCid Advance with advancer = timeProvider2
 
-    let contracts = Contracts with operatorRoleCid; clockCid;evolveCid
+    let contracts = Contracts with operatorRoleCid
     return (parties, contracts, house, leaseTerms)
 

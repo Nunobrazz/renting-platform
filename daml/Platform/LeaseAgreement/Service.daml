@@ -14,7 +14,6 @@ template Service
     operator : Party
     host : Party       -- Who will put the house for listing (must be host)
     tenant : Party     -- Who is renting the house
-    arbitrator : Party
     laKey : LAkey
   where
     signatory operator, host, tenant    -- Market operator and user will need to sign this contract
@@ -31,7 +30,7 @@ template Service
         reporter : Party
         house : House
         description : Text
-        startingDate : Date -- put today date
+        startingDate : Date --put today date
       controller reporter
       do
 
@@ -49,14 +48,17 @@ template Service
     nonconsuming choice SubmitAssessment : ContractId Assessment
       with 
         creator : Party
-        signer : Party
         assessment : AssessmentDetails
         miReportCid : ContractId MIReport
       controller creator
       do
         MIReport{miDetails} <- fetch miReportCid
-        create Assessment with creator; signer; miDetails; assessment
-    
+        
+        if creator == tenant then
+          create Assessment with creator=tenant; signer=host; miDetails; assessment; miReportCid
+        else 
+          create Assessment with creator=host; signer=tenant; miDetails; assessment; miReportCid
+
 
     nonconsuming choice AcceptAssessment : ContractId MIresultFriendly
       with 
@@ -77,7 +79,19 @@ template Service
         MIReport{miDetails} <- fetch miReportCid
         create InviteArbitrators with inviter; invited; confirmed = S.empty; miDetails; miReportCid
 
+
+    nonconsuming choice FinalizeInvitation : ContractId MIReport -- Como fazer que os reportes não convidem estranhos ?  Meter o operator a criar um contract com todos os arbitrators disponiveis ?
+      with
+        inviter : Party 
+        invitationCid : ContractId InviteArbitrators
+      controller inviter
+      do
+
+        exercise invitationCid ConfirmAttribution with inviter
+
     
+
+
 
 ---- END ---- MAINTENANCE ISSUES
 
@@ -102,12 +116,11 @@ template Request
     choice Approve : ContractId Service
       with 
         lifecycler : Party
-        arbitrator : Party
       controller operator      -- operator approves
       do
 
         create LeaseAgreement with operator; lifecycler; tenant=proposer; house; leaseTerms;paymentsToProcess=leaseTerms.paymentDates
-        create Service with operator; tenant=proposer; host=house.host; arbitrator; laKey = LAkey with tenant=proposer;house
+        create Service with operator; tenant=proposer; host=house.host; laKey = LAkey with tenant=proposer;house
 
 
 

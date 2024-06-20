@@ -1,0 +1,13 @@
+{
+  "admin": "Admin::1220f987df36237efafe9d6776fe558d99bd140ebc8f8531f72ab5f685387df7867b",
+  "arbitrator2": "Arbitrator2::1220f987df36237efafe9d6776fe558d99bd140ebc8f8531f72ab5f685387df7867b",
+  "timeProvider1": "TimeProvider1::1220f987df36237efafe9d6776fe558d99bd140ebc8f8531f72ab5f685387df7867b",
+  "public": "Public::1220f987df36237efafe9d6776fe558d99bd140ebc8f8531f72ab5f685387df7867b",
+  "alice": "Alice::1220f987df36237efafe9d6776fe558d99bd140ebc8f8531f72ab5f685387df7867b",
+  "lifecycler": "Lifecycler::1220f987df36237efafe9d6776fe558d99bd140ebc8f8531f72ab5f685387df7867b",
+  "timeProvider3": "TimeProvider3::1220f987df36237efafe9d6776fe558d99bd140ebc8f8531f72ab5f685387df7867b",
+  "arbitrator1": "Arbitrator1::1220f987df36237efafe9d6776fe558d99bd140ebc8f8531f72ab5f685387df7867b",
+  "timeProvider2": "TimeProvider2::1220f987df36237efafe9d6776fe558d99bd140ebc8f8531f72ab5f685387df7867b",
+  "operator": "Operator::1220f987df36237efafe9d6776fe558d99bd140ebc8f8531f72ab5f685387df7867b",
+  "bob": "Bob::1220f987df36237efafe9d6776fe558d99bd140ebc8f8531f72ab5f685387df7867b"
+}

@@ -5,19 +5,15 @@ import DA.Date
 import qualified DA.Set as S
 
 import Test.LAcreation 
-import Platform.Role.Operator
 import Platform.Types.LA 
 import Platform.Types.MI 
-import Platform.Types.Common 
 import Platform.LeaseAgreement.Service qualified as LA
 
 assignment = do
     
   (parties, contracts, house, leaseTerms) <- laCreation
 
-  arbitrator1 <- allocateParty "Arbitrator1"
-  arbitrator2 <- allocateParty "Arbitrator2"
-  arbitrator3 <- allocateParty "Arbitrator3"
+
 
 
   let alice = parties.alice            
@@ -29,18 +25,18 @@ assignment = do
       operatorRoleCid = contracts.operatorRoleCid
       laServiceCid = contracts.laServiceCid
  
-      invited = S.fromList [arbitrator1, arbitrator2, arbitrator3] 
+      invited = S.fromList [parties.arbitrator1, parties.arbitrator2] 
       laKey = LAkey with tenant = bob; house 
-      assessment = AssessmentDetails with responsability = (Responsability with  reporterResp = 10; counterpartResp=90); cost= 50; assessmentDate = date 2024 Jun 25; reparationDate = (date 2024 Jun 30)
-      vote1 = Responsability with reporterResp = 30; counterpartResp=70
-      vote2 = Responsability with reporterResp = 10; counterpartResp=90
+      assessment = AssessmentDetails with responsability = (Responsability with  tenantResp = 10; hostResp=90); cost= 50; assessmentDate = date 2024 Jun 25; reparationDate = (date 2024 Jun 30)
+      vote1 = Responsability with tenantResp = 30; hostResp=70
+      vote2 = Responsability with tenantResp = 10; hostResp=90
 
 
   miReportCid <- submit bob do 
     exerciseCmd contracts.laServiceCid LA.CreateMI with reporter=bob; house; startingDate = date 2024 May 19; description = "Broken chair"
 
   invitationCid <- submit bob do 
-    exerciseCmd contracts.laServiceCid LA.InvokeArbitrators with inviter=bob;invited; miReportCid
+    exerciseCmd contracts.laServiceCid LA.InvokeArbitrators with inviter=bob; invited; miReportCid
   
   
 
