@@ -41,23 +41,23 @@ import rentingPlatform.codegen.platform.types.mi.AssessmentDetails;
 import rentingPlatform.codegen.platform.types.mi.MIdetails;
 
 public final class Assessment extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b", "Platform.LeaseAgreement.ModelMI", "Assessment");
-
-  public static final Choice<Assessment, rentingPlatform.codegen.da.internal.template.Archive, Unit> CHOICE_Archive = 
-      Choice.create("Archive", value$ -> value$.toValue(), value$ ->
-        rentingPlatform.codegen.da.internal.template.Archive.valueDecoder().decode(value$),
-        value$ -> PrimitiveValueDecoders.fromUnit.decode(value$));
+  public static final Identifier TEMPLATE_ID = new Identifier("a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76", "Platform.LeaseAgreement.ModelMI", "Assessment");
 
   public static final Choice<Assessment, SignAssessment, MIresultFriendly.ContractId> CHOICE_SignAssessment = 
       Choice.create("SignAssessment", value$ -> value$.toValue(), value$ ->
         SignAssessment.valueDecoder().decode(value$), value$ ->
         new MIresultFriendly.ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
 
+  public static final Choice<Assessment, rentingPlatform.codegen.da.internal.template.Archive, Unit> CHOICE_Archive = 
+      Choice.create("Archive", value$ -> value$.toValue(), value$ ->
+        rentingPlatform.codegen.da.internal.template.Archive.valueDecoder().decode(value$),
+        value$ -> PrimitiveValueDecoders.fromUnit.decode(value$));
+
   public static final ContractCompanion.WithoutKey<Contract, ContractId, Assessment> COMPANION = 
       new ContractCompanion.WithoutKey<>(
         "rentingPlatform.codegen.platform.leaseagreement.modelmi.Assessment", TEMPLATE_ID,
         ContractId::new, v -> Assessment.templateValueDecoder().decode(v), Assessment::fromJson,
-        Contract::new, List.of(CHOICE_Archive, CHOICE_SignAssessment));
+        Contract::new, List.of(CHOICE_SignAssessment, CHOICE_Archive));
 
   public final String creator;
 
@@ -84,23 +84,6 @@ public final class Assessment extends Template {
   }
 
   /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseArchive} instead
-   */
-  @Deprecated
-  public Update<Exercised<Unit>> createAndExerciseArchive(
-      rentingPlatform.codegen.da.internal.template.Archive arg) {
-    return createAnd().exerciseArchive(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseArchive} instead
-   */
-  @Deprecated
-  public Update<Exercised<Unit>> createAndExerciseArchive() {
-    return createAndExerciseArchive(new rentingPlatform.codegen.da.internal.template.Archive());
-  }
-
-  /**
    * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseSignAssessment} instead
    */
   @Deprecated
@@ -116,6 +99,23 @@ public final class Assessment extends Template {
   public Update<Exercised<MIresultFriendly.ContractId>> createAndExerciseSignAssessment(
       String signer) {
     return createAndExerciseSignAssessment(new SignAssessment(signer));
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseArchive} instead
+   */
+  @Deprecated
+  public Update<Exercised<Unit>> createAndExerciseArchive(
+      rentingPlatform.codegen.da.internal.template.Archive arg) {
+    return createAnd().exerciseArchive(arg);
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseArchive} instead
+   */
+  @Deprecated
+  public Update<Exercised<Unit>> createAndExerciseArchive() {
+    return createAndExerciseArchive(new rentingPlatform.codegen.da.internal.template.Archive());
   }
 
   public static Update<Created<ContractId>> create(String creator, String signer,
@@ -271,15 +271,6 @@ public final class Assessment extends Template {
   }
 
   public interface Exercises<Cmd> extends com.daml.ledger.javaapi.data.codegen.Exercises.Archive<Cmd> {
-    default Update<Exercised<Unit>> exerciseArchive(
-        rentingPlatform.codegen.da.internal.template.Archive arg) {
-      return makeExerciseCmd(CHOICE_Archive, arg);
-    }
-
-    default Update<Exercised<Unit>> exerciseArchive() {
-      return exerciseArchive(new rentingPlatform.codegen.da.internal.template.Archive());
-    }
-
     default Update<Exercised<MIresultFriendly.ContractId>> exerciseSignAssessment(
         SignAssessment arg) {
       return makeExerciseCmd(CHOICE_SignAssessment, arg);
@@ -287,6 +278,15 @@ public final class Assessment extends Template {
 
     default Update<Exercised<MIresultFriendly.ContractId>> exerciseSignAssessment(String signer) {
       return exerciseSignAssessment(new SignAssessment(signer));
+    }
+
+    default Update<Exercised<Unit>> exerciseArchive(
+        rentingPlatform.codegen.da.internal.template.Archive arg) {
+      return makeExerciseCmd(CHOICE_Archive, arg);
+    }
+
+    default Update<Exercised<Unit>> exerciseArchive() {
+      return exerciseArchive(new rentingPlatform.codegen.da.internal.template.Archive());
     }
   }
 

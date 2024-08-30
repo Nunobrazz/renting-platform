@@ -21,21 +21,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import rentingPlatform.codegen.da.set.types.Set;
+import rentingPlatform.codegen.platform.leaseagreement.modelmi.AvailableArbitrators;
 import rentingPlatform.codegen.platform.leaseagreement.modelmi.MIReport;
 
 public class InvokeArbitrators extends DamlRecord<InvokeArbitrators> {
-  public static final String _packageId = "c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b";
+  public static final String _packageId = "a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76";
 
   public final String inviter;
 
-  public final Set<String> invited;
+  public final AvailableArbitrators.ContractId availableArbitratorsCid;
 
   public final MIReport.ContractId miReportCid;
 
-  public InvokeArbitrators(String inviter, Set<String> invited, MIReport.ContractId miReportCid) {
+  public InvokeArbitrators(String inviter, AvailableArbitrators.ContractId availableArbitratorsCid,
+      MIReport.ContractId miReportCid) {
     this.inviter = inviter;
-    this.invited = invited;
+    this.availableArbitratorsCid = availableArbitratorsCid;
     this.miReportCid = miReportCid;
   }
 
@@ -53,27 +54,27 @@ public class InvokeArbitrators extends DamlRecord<InvokeArbitrators> {
       List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(3,0,
           recordValue$);
       String inviter = PrimitiveValueDecoders.fromParty.decode(fields$.get(0).getValue());
-      Set<String> invited = Set.<java.lang.String>valueDecoder(PrimitiveValueDecoders.fromParty)
-          .decode(fields$.get(1).getValue());
+      AvailableArbitrators.ContractId availableArbitratorsCid =
+          new AvailableArbitrators.ContractId(fields$.get(1).getValue().asContractId().orElseThrow(() -> new IllegalArgumentException("Expected availableArbitratorsCid to be of type com.daml.ledger.javaapi.data.ContractId")).getValue());
       MIReport.ContractId miReportCid =
           new MIReport.ContractId(fields$.get(2).getValue().asContractId().orElseThrow(() -> new IllegalArgumentException("Expected miReportCid to be of type com.daml.ledger.javaapi.data.ContractId")).getValue());
-      return new InvokeArbitrators(inviter, invited, miReportCid);
+      return new InvokeArbitrators(inviter, availableArbitratorsCid, miReportCid);
     } ;
   }
 
   public com.daml.ledger.javaapi.data.DamlRecord toValue() {
     ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field> fields = new ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field>(3);
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("inviter", new Party(this.inviter)));
-    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("invited", this.invited.toValue(v$0 -> new Party(v$0))));
+    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("availableArbitratorsCid", this.availableArbitratorsCid.toValue()));
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("miReportCid", this.miReportCid.toValue()));
     return new com.daml.ledger.javaapi.data.DamlRecord(fields);
   }
 
   public static JsonLfDecoder<InvokeArbitrators> jsonDecoder() {
-    return JsonLfDecoders.record(Arrays.asList("inviter", "invited", "miReportCid"), name -> {
+    return JsonLfDecoders.record(Arrays.asList("inviter", "availableArbitratorsCid", "miReportCid"), name -> {
           switch (name) {
             case "inviter": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
-            case "invited": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
+            case "availableArbitratorsCid": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.contractId(rentingPlatform.codegen.platform.leaseagreement.modelmi.AvailableArbitrators.ContractId::new));
             case "miReportCid": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(2, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.contractId(rentingPlatform.codegen.platform.leaseagreement.modelmi.MIReport.ContractId::new));
             default: return null;
           }
@@ -88,7 +89,7 @@ public class InvokeArbitrators extends DamlRecord<InvokeArbitrators> {
   public JsonLfEncoder jsonEncoder() {
     return JsonLfEncoders.record(
         JsonLfEncoders.Field.of("inviter", apply(JsonLfEncoders::party, inviter)),
-        JsonLfEncoders.Field.of("invited", apply(_x0 -> _x0.jsonEncoder(JsonLfEncoders::party), invited)),
+        JsonLfEncoders.Field.of("availableArbitratorsCid", apply(JsonLfEncoders::contractId, availableArbitratorsCid)),
         JsonLfEncoders.Field.of("miReportCid", apply(JsonLfEncoders::contractId, miReportCid)));
   }
 
@@ -105,18 +106,18 @@ public class InvokeArbitrators extends DamlRecord<InvokeArbitrators> {
     }
     InvokeArbitrators other = (InvokeArbitrators) object;
     return Objects.equals(this.inviter, other.inviter) &&
-        Objects.equals(this.invited, other.invited) &&
+        Objects.equals(this.availableArbitratorsCid, other.availableArbitratorsCid) &&
         Objects.equals(this.miReportCid, other.miReportCid);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.inviter, this.invited, this.miReportCid);
+    return Objects.hash(this.inviter, this.availableArbitratorsCid, this.miReportCid);
   }
 
   @Override
   public String toString() {
     return String.format("rentingPlatform.codegen.platform.leaseagreement.service.InvokeArbitrators(%s, %s, %s)",
-        this.inviter, this.invited, this.miReportCid);
+        this.inviter, this.availableArbitratorsCid, this.miReportCid);
   }
 }

@@ -22,17 +22,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import rentingPlatform.codegen.platform.leaseagreement.service.Request;
+import rentingPlatform.codegen.time.lifecycle.evolve.Evolve;
 
 public class ApproveLeaseAgreementService extends DamlRecord<ApproveLeaseAgreementService> {
-  public static final String _packageId = "c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b";
+  public static final String _packageId = "a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76";
 
   public final Request.ContractId laServiceReqCid;
 
   public final String lifecycler;
 
-  public ApproveLeaseAgreementService(Request.ContractId laServiceReqCid, String lifecycler) {
+  public final Evolve.ContractId evolveCid;
+
+  public ApproveLeaseAgreementService(Request.ContractId laServiceReqCid, String lifecycler,
+      Evolve.ContractId evolveCid) {
     this.laServiceReqCid = laServiceReqCid;
     this.lifecycler = lifecycler;
+    this.evolveCid = evolveCid;
   }
 
   /**
@@ -48,31 +53,35 @@ public class ApproveLeaseAgreementService extends DamlRecord<ApproveLeaseAgreeme
       IllegalArgumentException {
     return value$ -> {
       Value recordValue$ = value$;
-      List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(2,0,
+      List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(3,0,
           recordValue$);
       Request.ContractId laServiceReqCid =
           new Request.ContractId(fields$.get(0).getValue().asContractId().orElseThrow(() -> new IllegalArgumentException("Expected laServiceReqCid to be of type com.daml.ledger.javaapi.data.ContractId")).getValue());
       String lifecycler = PrimitiveValueDecoders.fromParty.decode(fields$.get(1).getValue());
-      return new ApproveLeaseAgreementService(laServiceReqCid, lifecycler);
+      Evolve.ContractId evolveCid =
+          new Evolve.ContractId(fields$.get(2).getValue().asContractId().orElseThrow(() -> new IllegalArgumentException("Expected evolveCid to be of type com.daml.ledger.javaapi.data.ContractId")).getValue());
+      return new ApproveLeaseAgreementService(laServiceReqCid, lifecycler, evolveCid);
     } ;
   }
 
   public com.daml.ledger.javaapi.data.DamlRecord toValue() {
-    ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field> fields = new ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field>(2);
+    ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field> fields = new ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field>(3);
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("laServiceReqCid", this.laServiceReqCid.toValue()));
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("lifecycler", new Party(this.lifecycler)));
+    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("evolveCid", this.evolveCid.toValue()));
     return new com.daml.ledger.javaapi.data.DamlRecord(fields);
   }
 
   public static JsonLfDecoder<ApproveLeaseAgreementService> jsonDecoder() {
-    return JsonLfDecoders.record(Arrays.asList("laServiceReqCid", "lifecycler"), name -> {
+    return JsonLfDecoders.record(Arrays.asList("laServiceReqCid", "lifecycler", "evolveCid"), name -> {
           switch (name) {
             case "laServiceReqCid": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.contractId(rentingPlatform.codegen.platform.leaseagreement.service.Request.ContractId::new));
             case "lifecycler": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
+            case "evolveCid": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(2, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.contractId(rentingPlatform.codegen.time.lifecycle.evolve.Evolve.ContractId::new));
             default: return null;
           }
         }
-        , (Object[] args) -> new ApproveLeaseAgreementService(JsonLfDecoders.cast(args[0]), JsonLfDecoders.cast(args[1])));
+        , (Object[] args) -> new ApproveLeaseAgreementService(JsonLfDecoders.cast(args[0]), JsonLfDecoders.cast(args[1]), JsonLfDecoders.cast(args[2])));
   }
 
   public static ApproveLeaseAgreementService fromJson(String json) throws JsonLfDecoder.Error {
@@ -82,7 +91,8 @@ public class ApproveLeaseAgreementService extends DamlRecord<ApproveLeaseAgreeme
   public JsonLfEncoder jsonEncoder() {
     return JsonLfEncoders.record(
         JsonLfEncoders.Field.of("laServiceReqCid", apply(JsonLfEncoders::contractId, laServiceReqCid)),
-        JsonLfEncoders.Field.of("lifecycler", apply(JsonLfEncoders::party, lifecycler)));
+        JsonLfEncoders.Field.of("lifecycler", apply(JsonLfEncoders::party, lifecycler)),
+        JsonLfEncoders.Field.of("evolveCid", apply(JsonLfEncoders::contractId, evolveCid)));
   }
 
   @Override
@@ -98,17 +108,18 @@ public class ApproveLeaseAgreementService extends DamlRecord<ApproveLeaseAgreeme
     }
     ApproveLeaseAgreementService other = (ApproveLeaseAgreementService) object;
     return Objects.equals(this.laServiceReqCid, other.laServiceReqCid) &&
-        Objects.equals(this.lifecycler, other.lifecycler);
+        Objects.equals(this.lifecycler, other.lifecycler) &&
+        Objects.equals(this.evolveCid, other.evolveCid);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.laServiceReqCid, this.lifecycler);
+    return Objects.hash(this.laServiceReqCid, this.lifecycler, this.evolveCid);
   }
 
   @Override
   public String toString() {
-    return String.format("rentingPlatform.codegen.platform.role.operator.ApproveLeaseAgreementService(%s, %s)",
-        this.laServiceReqCid, this.lifecycler);
+    return String.format("rentingPlatform.codegen.platform.role.operator.ApproveLeaseAgreementService(%s, %s, %s)",
+        this.laServiceReqCid, this.lifecycler, this.evolveCid);
   }
 }

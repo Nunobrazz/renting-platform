@@ -43,7 +43,7 @@ import java.util.Optional;
 import rentingPlatform.codegen.da.set.types.Set;
 
 public final class DateClock extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b", "Time.Clock1", "DateClock");
+  public static final Identifier TEMPLATE_ID = new Identifier("0f7671962406d563d5db49b123eee6c64363d883cdfba883494730ce259e7d49", "Time.Clock1", "DateClock");
 
   public static final Choice<DateClock, Advance, ContractId> CHOICE_Advance = 
       Choice.create("Advance", value$ -> value$.toValue(), value$ -> Advance.valueDecoder()

@@ -1,13 +1,13 @@
 module Platform.Proposal.Service where
-
-
+{--
 import Platform.Types.Common as Types (House, LeaseTerms) 
 import Platform.Proposal.Model qualified as Model (Sign(..), Proposal(..), RequestLeaseAgreement(..))
 import Platform.LeaseAgreement.Service qualified as LAService 
+import Time.Lifecycle.Evolve
 
 
 
-template Service
+template Service -- proposal service deveira ser para qualquer host
   with
     operator : Party
     proposer : Party
@@ -16,7 +16,7 @@ template Service
     signatory operator, proposer
     observer host
 
-    key (operator, proposer) : (Party, Party)  -- The service has to be unique for admin and host either the host has access to the service or not
+    key (operator, proposer) : (Party, Party)  
     maintainer key._1
 
 
@@ -29,8 +29,7 @@ template Service
       do
         create Model.Proposal with proposer; house; leaseTerms; alreadySigned=[]
 
-
-    -- Archives a Proposal contract by the host
+    -- Archives a Proposal contract by the host (not possible to to here host is not signatory of proposalCid)
     nonconsuming choice RejectProposal : ()
       with 
         proposalCid : ContractId Model.Proposal
@@ -54,7 +53,6 @@ template Service
       do 
         exercise proposalCid Model.Sign with signer=host
 
-
     -- In case we need to add a new signer
     nonconsuming choice SignProposal : ContractId Model.Proposal
       with 
@@ -64,8 +62,6 @@ template Service
       do 
         exercise proposalCid Model.Sign with signer
 
-
-    -- In case we need to add a new signer
     nonconsuming choice RequestLeaseAgreement : ContractId LAService.Request
       with 
         signer : Party
@@ -73,8 +69,7 @@ template Service
       controller signer
       do 
         exercise proposalCid Model.RequestLeaseAgreement with signer; operator
-
-
+        
 
 
 -- This tmeplate will be created by the proposer to request to make a proposal to a house
@@ -102,3 +97,4 @@ template Request
 
 
 
+--}

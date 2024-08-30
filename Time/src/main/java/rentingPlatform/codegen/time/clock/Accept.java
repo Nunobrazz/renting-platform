@@ -23,12 +23,12 @@ import java.util.List;
 import java.util.Objects;
 
 public class Accept extends DamlRecord<Accept> {
-  public static final String _packageId = "c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b";
+  public static final String _packageId = "a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76";
 
-  public final String newProvider;
+  public final String provider;
 
-  public Accept(String newProvider) {
-    this.newProvider = newProvider;
+  public Accept(String provider) {
+    this.provider = provider;
   }
 
   /**
@@ -44,21 +44,21 @@ public class Accept extends DamlRecord<Accept> {
       Value recordValue$ = value$;
       List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(1,0,
           recordValue$);
-      String newProvider = PrimitiveValueDecoders.fromParty.decode(fields$.get(0).getValue());
-      return new Accept(newProvider);
+      String provider = PrimitiveValueDecoders.fromParty.decode(fields$.get(0).getValue());
+      return new Accept(provider);
     } ;
   }
 
   public com.daml.ledger.javaapi.data.DamlRecord toValue() {
     ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field> fields = new ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field>(1);
-    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("newProvider", new Party(this.newProvider)));
+    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("provider", new Party(this.provider)));
     return new com.daml.ledger.javaapi.data.DamlRecord(fields);
   }
 
   public static JsonLfDecoder<Accept> jsonDecoder() {
-    return JsonLfDecoders.record(Arrays.asList("newProvider"), name -> {
+    return JsonLfDecoders.record(Arrays.asList("provider"), name -> {
           switch (name) {
-            case "newProvider": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
+            case "provider": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
             default: return null;
           }
         }
@@ -71,7 +71,7 @@ public class Accept extends DamlRecord<Accept> {
 
   public JsonLfEncoder jsonEncoder() {
     return JsonLfEncoders.record(
-        JsonLfEncoders.Field.of("newProvider", apply(JsonLfEncoders::party, newProvider)));
+        JsonLfEncoders.Field.of("provider", apply(JsonLfEncoders::party, provider)));
   }
 
   @Override
@@ -86,16 +86,16 @@ public class Accept extends DamlRecord<Accept> {
       return false;
     }
     Accept other = (Accept) object;
-    return Objects.equals(this.newProvider, other.newProvider);
+    return Objects.equals(this.provider, other.provider);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.newProvider);
+    return Objects.hash(this.provider);
   }
 
   @Override
   public String toString() {
-    return String.format("rentingPlatform.codegen.time.clock.Accept(%s)", this.newProvider);
+    return String.format("rentingPlatform.codegen.time.clock.Accept(%s)", this.provider);
   }
 }

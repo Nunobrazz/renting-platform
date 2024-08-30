@@ -7,13 +7,10 @@ import qualified DA.Set as S
 import Test.LAcreation 
 import Platform.Types.LA 
 import Platform.Types.MI 
-import Platform.LeaseAgreement.Service qualified as LA
 
 assignment = do
     
-  (parties, contracts, house, leaseTerms) <- laCreation
-
-
+  (parties, laServiceCid, house, leaseTerms,_) <- laCreation
 
 
   let alice = parties.alice            
@@ -21,9 +18,7 @@ assignment = do
       bob = parties.bob                
       operator = parties.operator                
 
-      
-      operatorRoleCid = contracts.operatorRoleCid
-      laServiceCid = contracts.laServiceCid
+  
  
       invited = S.fromList [parties.arbitrator1, parties.arbitrator2] 
       laKey = LAkey with tenant = bob; house 
@@ -31,13 +26,6 @@ assignment = do
       vote1 = Responsability with tenantResp = 30; hostResp=70
       vote2 = Responsability with tenantResp = 10; hostResp=90
 
-
-  miReportCid <- submit bob do 
-    exerciseCmd contracts.laServiceCid LA.CreateMI with reporter=bob; house; startingDate = date 2024 May 19; description = "Broken chair"
-
-  invitationCid <- submit bob do 
-    exerciseCmd contracts.laServiceCid LA.InvokeArbitrators with inviter=bob; invited; miReportCid
-  
   
 
   pure()

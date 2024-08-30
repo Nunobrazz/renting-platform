@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class AddProvider extends DamlRecord<AddProvider> {
-  public static final String _packageId = "c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b";
+  public static final String _packageId = "5ae51270ec4a11d9604cfaab6537a2e27343abd8466ec27da360aec2fd9e3a8d";
 
   public final String newProvider;
 

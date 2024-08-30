@@ -23,11 +23,11 @@ build-options:
 #  - --ghc-option=-Werror
 sandbox:
   ledger_id: rentingPlatformLedger
-codegen:
-  js:
-    output-directory: ui/daml.js
-    npm-scope: daml.js 
-  java:
-    package-prefix: rentingPlatform.codegen
-    output-directory: Time/src/main/java/
-    #output-directory: Arbitrators/src/main/java/
+#codegen:
+#  js:
+#    output-directory: ui/daml.js
+#    npm-scope: daml.js 
+#  java:
+#    package-prefix: rentingPlatform.codegen
+#    output-directory: Time/src/main/java/
+#    output-directory: Arbitrators/src/main/java/

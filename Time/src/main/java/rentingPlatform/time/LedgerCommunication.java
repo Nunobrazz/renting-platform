@@ -18,8 +18,8 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.MIReport;
 import rentingPlatform.codegen.time.clock.DateClock;
+import rentingPlatform.codegen.time.clock.DateClockUpdateEvent;
 import rentingPlatform.codegen.time.lifecycle.evolve.Evolve;
 
 
@@ -32,7 +32,6 @@ public class LedgerCommunication {
 
   public DamlLedgerClient client;
   
-
 
   public static final AtomicReference<LedgerOffset> acsOffset = new AtomicReference<>(LedgerOffset.LedgerBegin.getInstance()); 
   public AtomicLong dateClocksIdCounter = new AtomicLong(0);
@@ -57,7 +56,7 @@ public class LedgerCommunication {
 
   }
 
-  // everyday advance clock by 1 day and probes better to create a thread that always probes updates to evolveclockCid var
+  // everyday advance clock by 1 day and probes better to create a thread that always probes updates to evolve
   public void advanceClock() {
 
     System.out.printf("First in providers: %s\n",dateClock.data.providers.get(0));
@@ -66,24 +65,27 @@ public class LedgerCommunication {
     System.out.printf("length timeProviderParty: %s\n", timeProviderParty.length());
     System.out.printf("Verification is: %b\n", timeProviderParty.equals(dateClock.data.providers.get(0)));
 
-    if (dateClock.data.providers.get(0) .equals( timeProviderParty)) {
+    //if (dateClock.data.providers.get(0).equals(timeProviderParty)) { // should i keep this if or print exception
       
       System.out.printf("\nAdvancing date clock one day...\n");
-
+            
       var update = dateClock.id.exerciseAdvance(timeProviderParty);
       var result = submit(client, timeProviderParty, update);    // NewClock and DateClockEvent
       
-      // Lifecycle payments
-      evolve.id.exerciseProcessEvent(result.exerciseResult); 
-      submit(client, lifecyclerParty, update);  // Maybe print if some payment occured
 
-    }
-    else{
-      System.out.printf("\nWithout permission to advance date clock.\n");
-    }
+      System.out.printf("\nEvolve Cid: %s\n", evolve.id.toString());
+      System.out.printf("\nresult.exerciseResult: %s\n", result.exerciseResult);
+      
+      DateClockUpdateEvent.ContractId updatedClockcid = result.exerciseResult;
+
+      // Lifecycle payments
+      var update1 = evolve.id.exerciseProcessEvent(updatedClockcid); 
+      
+      submit(client, lifecyclerParty, update1);  // Maybe print if some payment occured
+
+   
   }
   
-
 
   public void getCurrentState() {
     dateClock = client
@@ -93,7 +95,7 @@ public class LedgerCommunication {
         .activeContracts
         .get(0);
     
-    System.out.printf("\nCurrent Date: %s\n", dateClock.data.clockDate.toString());
+    System.out.printf("Current Date: %s\n", dateClock.data.clockDate.toString());
 
     evolve = client
         .getActiveContractSetClient()
@@ -102,13 +104,12 @@ public class LedgerCommunication {
         .activeContracts
         .get(0);
     
-    System.out.printf("\nCurrent Evolve Cid: %s\n", evolve.id.toString());
-
+    System.out.printf("Current Evolve Cid: %s\n", evolve.id.toString());
 
   }
   
 
-  public void probeDateClocks(){
+  public void probeDateClocks(){ // Probe because other party can update too
       
       client
             .getTransactionsClient()
@@ -120,7 +121,7 @@ public class LedgerCommunication {
                   if (event instanceof CreatedEvent) {
                     CreatedEvent createdEvent = (CreatedEvent) event;
                     dateClock = DateClock.Contract.fromCreatedEvent(createdEvent);
-                    System.out.printf("\nNew date passed: %s\n", dateClock.data.clockDate.toString());
+                    System.out.printf("New Date: %s\n", dateClock.data.clockDate.toString());
                   } 
                 }
               });

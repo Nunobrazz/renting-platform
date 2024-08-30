@@ -43,7 +43,7 @@ import rentingPlatform.codegen.platform.types.common.House;
 import rentingPlatform.codegen.platform.types.common.LeaseTerms;
 
 public final class Proposal extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b", "Platform.Proposal.Model", "Proposal");
+  public static final Identifier TEMPLATE_ID = new Identifier("a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76", "Platform.Proposal.Model", "Proposal");
 
   public static final Choice<Proposal, Sign, ContractId> CHOICE_Sign = 
       Choice.create("Sign", value$ -> value$.toValue(), value$ -> Sign.valueDecoder()
@@ -55,6 +55,11 @@ public final class Proposal extends Template {
         RequestLeaseAgreement.valueDecoder().decode(value$), value$ ->
         new Request.ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
 
+  public static final Choice<Proposal, RejectProposal, Unit> CHOICE_RejectProposal = 
+      Choice.create("RejectProposal", value$ -> value$.toValue(), value$ ->
+        RejectProposal.valueDecoder().decode(value$), value$ -> PrimitiveValueDecoders.fromUnit
+        .decode(value$));
+
   public static final Choice<Proposal, rentingPlatform.codegen.da.internal.template.Archive, Unit> CHOICE_Archive = 
       Choice.create("Archive", value$ -> value$.toValue(), value$ ->
         rentingPlatform.codegen.da.internal.template.Archive.valueDecoder().decode(value$),
@@ -64,7 +69,7 @@ public final class Proposal extends Template {
       new ContractCompanion.WithoutKey<>("rentingPlatform.codegen.platform.proposal.model.Proposal",
         TEMPLATE_ID, ContractId::new, v -> Proposal.templateValueDecoder().decode(v),
         Proposal::fromJson, Contract::new, List.of(CHOICE_Sign, CHOICE_RequestLeaseAgreement,
-        CHOICE_Archive));
+        CHOICE_RejectProposal, CHOICE_Archive));
 
   public final String proposer;
 
@@ -118,6 +123,22 @@ public final class Proposal extends Template {
   public Update<Exercised<Request.ContractId>> createAndExerciseRequestLeaseAgreement(String signer,
       String operator) {
     return createAndExerciseRequestLeaseAgreement(new RequestLeaseAgreement(signer, operator));
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseRejectProposal} instead
+   */
+  @Deprecated
+  public Update<Exercised<Unit>> createAndExerciseRejectProposal(RejectProposal arg) {
+    return createAnd().exerciseRejectProposal(arg);
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseRejectProposal} instead
+   */
+  @Deprecated
+  public Update<Exercised<Unit>> createAndExerciseRejectProposal() {
+    return createAndExerciseRejectProposal(new RejectProposal());
   }
 
   /**
@@ -299,6 +320,14 @@ public final class Proposal extends Template {
     default Update<Exercised<Request.ContractId>> exerciseRequestLeaseAgreement(String signer,
         String operator) {
       return exerciseRequestLeaseAgreement(new RequestLeaseAgreement(signer, operator));
+    }
+
+    default Update<Exercised<Unit>> exerciseRejectProposal(RejectProposal arg) {
+      return makeExerciseCmd(CHOICE_RejectProposal, arg);
+    }
+
+    default Update<Exercised<Unit>> exerciseRejectProposal() {
+      return exerciseRejectProposal(new RejectProposal());
     }
 
     default Update<Exercised<Unit>> exerciseArchive(

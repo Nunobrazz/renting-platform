@@ -40,7 +40,7 @@ import java.util.Set;
 import rentingPlatform.codegen.platform.types.common.House;
 
 public final class Request extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b", "Platform.Proposal.Service", "Request");
+  public static final Identifier TEMPLATE_ID = new Identifier("a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76", "Platform.Proposal.Service", "Request");
 
   public static final Choice<Request, Withdraw, Unit> CHOICE_Withdraw = 
       Choice.create("Withdraw", value$ -> value$.toValue(), value$ -> Withdraw.valueDecoder()

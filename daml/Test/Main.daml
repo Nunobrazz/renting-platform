@@ -1,27 +1,44 @@
 module Test.Main where
 
 import qualified DA.Set as S
+import qualified DA.List as L
 
 import Test.LAcreation 
 import Daml.Script
-import DA.Date
 import Platform.Types.LA 
-import Platform.LeaseAgreement.Service
+import Platform.Service
+import Platform.ModelMI
+import Platform.ModelLA
 import Test.Roles
+import Time.Clock
+import Time.Lifecycle.Evolve
+
 
 initialize : Script Parties
 initialize = do
 
   --passTime (days 19894)
 
-  (parties, contracts, house, _) <- laCreation
+  (parties, laServiceCid, house, _, today) <- laCreation
   let 
       laKey = LAkey with tenant = parties.bob; house 
 
-
-  -- Bob creates MI  Should be bob or host inviting arbitrators
+  availableArbitratorsCid <- submit parties.operator do
+    createCmd AvailableArbitrators with operator=parties.operator; arbitrators= S.fromList [parties.arbitrator1, parties.arbitrator2, parties.arbitrator3]; observers = S.fromList [parties.public]
+  
+  -- Bob creates MI 
   miReportCid <- submit parties.bob do 
-    exerciseCmd contracts.laServiceCid CreateMI with reporter=parties.bob; house; startingDate = date 2024 Jun 19; description = "Broken chair"
+    exerciseCmd laServiceCid CreateMI with reporter=parties.bob; house; startingDate = today; description = "Broken chair"
+
+
+  {--eventCid <- query @DateClockUpdateEvent parties.timeProvider1
+  let (dateClockUpdateEventCid, _) = L.head eventCid
+  
+  evolve <- query @Evolve parties.lifecycler
+  let (evolveCid, _) = L.head evolve
+  
+  newLACid <- submit parties.lifecycler do
+    exerciseCmd evolveCid ProcessEvent with eventCid=dateClockUpdateEventCid--}
 
 
   aliceId <- validateUserId "alice"
@@ -33,6 +50,7 @@ initialize = do
 
   arbitrator1Id <- validateUserId "arbitrator1" 
   arbitrator2Id <- validateUserId "arbitrator2"
+  arbitrator3Id <- validateUserId "arbitrator3"
 
   createUser (User aliceId (Some parties.alice)) [CanActAs parties.alice]
   createUser (User bobId (Some parties.bob)) [CanActAs parties.bob]
@@ -47,35 +65,8 @@ initialize = do
   createUser (User arbitrator2Id (Some parties.arbitrator2)) [CanActAs parties.arbitrator2]
   
   
-  invitationCid <- submit parties.bob do 
-    exerciseCmd contracts.laServiceCid InvokeArbitrators with inviter=parties.bob; invited = S.fromList [parties.arbitrator1, parties.arbitrator2]; miReportCid
-
-
 
   pure parties
   --pure [ parties.timeProvider1, parties.timeProvider2, parties.arbitrator1, parties.arbitrator2, parties.lifecycler]
-  
-
-
-  {--invitationCid <- submit arbitrator2 do 
-    exerciseCmd invitationCid Accept with arbitrator=arbitrator2
-  
-  invitationCid <- submit parties.arbitrator1 do 
-    exerciseCmd invitationCid Accept with arbitrator=parties.arbitrator1--}
-
-{--  passTime (T.days 1)
-
-  clockCid<- submit parties.timeProvider1 do
-    exerciseCmd contracts.clockCid Advance with days=1
-
-  passTime (T.days 1)
-
-  clockCid <- submit parties.timeProvider1 do
-    exerciseCmd clockCid Advance with days=1
- 
-  passTime (T.days 1) -- how is time passed on the ledger
-
-  clockCid <- submit parties.timeProvider1 do
-    exerciseCmd clockCid Advance with days=1--}
 
 

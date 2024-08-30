@@ -39,9 +39,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import rentingPlatform.codegen.da.set.types.Set;
+import java.util.Set;
 import rentingPlatform.codegen.da.types.Tuple2;
 import rentingPlatform.codegen.platform.leaseagreement.modelmi.Assessment;
+import rentingPlatform.codegen.platform.leaseagreement.modelmi.AvailableArbitrators;
 import rentingPlatform.codegen.platform.leaseagreement.modelmi.InviteArbitrators;
 import rentingPlatform.codegen.platform.leaseagreement.modelmi.MIReport;
 import rentingPlatform.codegen.platform.leaseagreement.modelmi.MIresultFriendly;
@@ -50,7 +51,7 @@ import rentingPlatform.codegen.platform.types.la.LAkey;
 import rentingPlatform.codegen.platform.types.mi.AssessmentDetails;
 
 public final class Service extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b", "Platform.LeaseAgreement.Service", "Service");
+  public static final Identifier TEMPLATE_ID = new Identifier("a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76", "Platform.LeaseAgreement.Service", "Service");
 
   public static final Choice<Service, AcceptAssessment, MIresultFriendly.ContractId> CHOICE_AcceptAssessment = 
       Choice.create("AcceptAssessment", value$ -> value$.toValue(), value$ ->
@@ -60,11 +61,6 @@ public final class Service extends Template {
   public static final Choice<Service, CreateMI, MIReport.ContractId> CHOICE_CreateMI = 
       Choice.create("CreateMI", value$ -> value$.toValue(), value$ -> CreateMI.valueDecoder()
         .decode(value$), value$ ->
-        new MIReport.ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
-
-  public static final Choice<Service, FinalizeInvitation, MIReport.ContractId> CHOICE_FinalizeInvitation = 
-      Choice.create("FinalizeInvitation", value$ -> value$.toValue(), value$ ->
-        FinalizeInvitation.valueDecoder().decode(value$), value$ ->
         new MIReport.ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
 
   public static final Choice<Service, InvokeArbitrators, InviteArbitrators.ContractId> CHOICE_InvokeArbitrators = 
@@ -87,8 +83,7 @@ public final class Service extends Template {
         "rentingPlatform.codegen.platform.leaseagreement.service.Service", TEMPLATE_ID,
         ContractId::new, v -> Service.templateValueDecoder().decode(v), Service::fromJson,
         Contract::new, List.of(CHOICE_InvokeArbitrators, CHOICE_AcceptAssessment,
-        CHOICE_SubmitAssessment, CHOICE_Archive, CHOICE_CreateMI, CHOICE_FinalizeInvitation),
-        e -> Tuple2.<java.lang.String,
+        CHOICE_SubmitAssessment, CHOICE_Archive, CHOICE_CreateMI), e -> Tuple2.<java.lang.String,
         java.lang.String>valueDecoder(PrimitiveValueDecoders.fromParty,
         PrimitiveValueDecoders.fromParty).decode(e));
 
@@ -152,25 +147,6 @@ public final class Service extends Template {
   }
 
   /**
-   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseFinalizeInvitation} instead
-   */
-  @Deprecated
-  public static Update<Exercised<MIReport.ContractId>> exerciseByKeyFinalizeInvitation(
-      Tuple2<String, String> key, FinalizeInvitation arg) {
-    return byKey(key).exerciseFinalizeInvitation(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseFinalizeInvitation(inviter,
-      invitationCid)} instead
-   */
-  @Deprecated
-  public static Update<Exercised<MIReport.ContractId>> exerciseByKeyFinalizeInvitation(
-      Tuple2<String, String> key, String inviter, InviteArbitrators.ContractId invitationCid) {
-    return byKey(key).exerciseFinalizeInvitation(inviter, invitationCid);
-  }
-
-  /**
    * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseInvokeArbitrators} instead
    */
   @Deprecated
@@ -180,14 +156,14 @@ public final class Service extends Template {
   }
 
   /**
-   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseInvokeArbitrators(inviter, invited,
-      miReportCid)} instead
+   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseInvokeArbitrators(inviter,
+      availableArbitratorsCid, miReportCid)} instead
    */
   @Deprecated
   public static Update<Exercised<InviteArbitrators.ContractId>> exerciseByKeyInvokeArbitrators(
-      Tuple2<String, String> key, String inviter, Set<String> invited,
-      MIReport.ContractId miReportCid) {
-    return byKey(key).exerciseInvokeArbitrators(inviter, invited, miReportCid);
+      Tuple2<String, String> key, String inviter,
+      AvailableArbitrators.ContractId availableArbitratorsCid, MIReport.ContractId miReportCid) {
+    return byKey(key).exerciseInvokeArbitrators(inviter, availableArbitratorsCid, miReportCid);
   }
 
   /**
@@ -263,24 +239,6 @@ public final class Service extends Template {
   }
 
   /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseFinalizeInvitation} instead
-   */
-  @Deprecated
-  public Update<Exercised<MIReport.ContractId>> createAndExerciseFinalizeInvitation(
-      FinalizeInvitation arg) {
-    return createAnd().exerciseFinalizeInvitation(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseFinalizeInvitation} instead
-   */
-  @Deprecated
-  public Update<Exercised<MIReport.ContractId>> createAndExerciseFinalizeInvitation(String inviter,
-      InviteArbitrators.ContractId invitationCid) {
-    return createAndExerciseFinalizeInvitation(new FinalizeInvitation(inviter, invitationCid));
-  }
-
-  /**
    * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseInvokeArbitrators} instead
    */
   @Deprecated
@@ -294,8 +252,10 @@ public final class Service extends Template {
    */
   @Deprecated
   public Update<Exercised<InviteArbitrators.ContractId>> createAndExerciseInvokeArbitrators(
-      String inviter, Set<String> invited, MIReport.ContractId miReportCid) {
-    return createAndExerciseInvokeArbitrators(new InvokeArbitrators(inviter, invited, miReportCid));
+      String inviter, AvailableArbitrators.ContractId availableArbitratorsCid,
+      MIReport.ContractId miReportCid) {
+    return createAndExerciseInvokeArbitrators(new InvokeArbitrators(inviter,
+        availableArbitratorsCid, miReportCid));
   }
 
   /**
@@ -467,8 +427,7 @@ public final class Service extends Template {
 
   public static class Contract extends ContractWithKey<ContractId, Service, Tuple2<String, String>> {
     public Contract(ContractId id, Service data, Optional<String> agreementText,
-        Optional<Tuple2<String, String>> key, java.util.Set<String> signatories,
-        java.util.Set<String> observers) {
+        Optional<Tuple2<String, String>> key, Set<String> signatories, Set<String> observers) {
       super(id, data, agreementText, key, signatories, observers);
     }
 
@@ -479,7 +438,7 @@ public final class Service extends Template {
 
     public static Contract fromIdAndRecord(String contractId, DamlRecord record$,
         Optional<String> agreementText, Optional<Tuple2<String, String>> key,
-        java.util.Set<String> signatories, java.util.Set<String> observers) {
+        Set<String> signatories, Set<String> observers) {
       return COMPANION.fromIdAndRecord(contractId, record$, agreementText, key, signatories,
           observers);
     }
@@ -509,24 +468,16 @@ public final class Service extends Template {
       return exerciseCreateMI(new CreateMI(reporter, house, description, startingDate));
     }
 
-    default Update<Exercised<MIReport.ContractId>> exerciseFinalizeInvitation(
-        FinalizeInvitation arg) {
-      return makeExerciseCmd(CHOICE_FinalizeInvitation, arg);
-    }
-
-    default Update<Exercised<MIReport.ContractId>> exerciseFinalizeInvitation(String inviter,
-        InviteArbitrators.ContractId invitationCid) {
-      return exerciseFinalizeInvitation(new FinalizeInvitation(inviter, invitationCid));
-    }
-
     default Update<Exercised<InviteArbitrators.ContractId>> exerciseInvokeArbitrators(
         InvokeArbitrators arg) {
       return makeExerciseCmd(CHOICE_InvokeArbitrators, arg);
     }
 
     default Update<Exercised<InviteArbitrators.ContractId>> exerciseInvokeArbitrators(
-        String inviter, Set<String> invited, MIReport.ContractId miReportCid) {
-      return exerciseInvokeArbitrators(new InvokeArbitrators(inviter, invited, miReportCid));
+        String inviter, AvailableArbitrators.ContractId availableArbitratorsCid,
+        MIReport.ContractId miReportCid) {
+      return exerciseInvokeArbitrators(new InvokeArbitrators(inviter, availableArbitratorsCid,
+          miReportCid));
     }
 
     default Update<Exercised<Unit>> exerciseArchive(

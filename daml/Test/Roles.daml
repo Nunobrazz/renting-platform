@@ -1,13 +1,12 @@
 module Test.Roles where
 
 import qualified DA.Set as S
+import qualified DA.List as L
 import Daml.Script
 import DA.Date
 import Platform.Types.Common 
-import Platform.Role.Operator qualified as Operator (Role(..))
 import Time.Clock
 import Time.Lifecycle.Evolve
-
 
 data Parties = Parties
   with
@@ -21,14 +20,11 @@ data Parties = Parties
     lifecycler: Party
     arbitrator1: Party
     arbitrator2: Party
+    arbitrator3: Party
     public : Party
 
-data Contracts = Contracts
-  with
-    operatorRoleCid : ContractId Operator.Role
 
-
-init : Script (Parties, Contracts, House, LeaseTerms)
+init : Script (Parties, House, LeaseTerms, Date)
 init = script do 
 
     alice <- allocatePartyWithHint "Alice" (PartyIdHint "Alice")              
@@ -43,33 +39,43 @@ init = script do
 
     arbitrator1 <- allocatePartyWithHint "Arbitrator1" (PartyIdHint "Arbitrator1")     
     arbitrator2 <- allocatePartyWithHint "Arbitrator2" (PartyIdHint "Arbitrator2")     
+    arbitrator3 <- allocatePartyWithHint "Arbitrator3" (PartyIdHint "Arbitrator3")     
     
     public <- allocatePartyWithHint "Public" (PartyIdHint "Public")    
 
-    now <- getTime
-    let house = House with host=alice; address = "Telheiras"; details = "This is a nice house"; listedRent=100 -- bug
-        leaseTerms = LeaseTerms with agreedRent=100; beginingDate = date 2024 Jan 2; paymentDates=[date 2024 Jan 3, date 2024 Feb 1, date 2024 Mar 1]; nArbitrators = 2
-        parties = Parties with alice; bob; operator; admin; timeProvider1;timeProvider2;lifecycler; timeProvider3; arbitrator1; arbitrator2; public
-        today = toDateUTC now
+    let house = House with host=alice; address = "Palermo Soho"; details = "This is a nice house"; listedRent=100 -- bug in listed house
+        leaseTerms = LeaseTerms with agreedRent=100; beginingDate = date 2024 Jan 2; paymentDates=[date 2024 Jun 24, date 2024 Jul 1, date 2024 Aug 1]; nArbitrators = 2
+        parties = Parties with alice; bob; operator; admin; timeProvider1; timeProvider2; lifecycler; timeProvider3; arbitrator1; arbitrator2; arbitrator3; public
+        today = date 2024 Jun 21
 
-    operatorRoleCid <- submit operator do
-      createCmd Operator.Role with operator
+    -- Begin Ledger Initialization 
     
-    dateClockCid <- submit operator do
-      createCmd DateClock with operator; providers=[]; clockDate=toDateUTC now; public= parties.public; waitingAccept=S.fromList [timeProvider1, timeProvider2]
-  
-    dateClockCid <- submit timeProvider1 do
-      exerciseCmd dateClockCid Accept with newProvider = timeProvider1
-
-    dateClockCid <- submit timeProvider2 do
-      exerciseCmd dateClockCid Accept with newProvider = timeProvider2
-
     evolveCid <- submit operator do
-      createCmd Evolve with operator; lifecycler; laKeys = S.empty
-
+      createCmd Evolve with operator; lifecycler; laKeys = S.empty; id="1"
+    
+    dateClockUpdateEventCid <- submit operator do
+      createCmd DateClockUpdateEvent with creator=operator; eventDate=today; observers=S.fromList [parties.public, timeProvider1, timeProvider2, parties.lifecycler]; operator; providers=[operator]
+    dateClockCid <- submit operator do
+      createCmd DateClock with operator; providers=[]; clockDate=today; creator=operator; waitingAccept = S.fromList [timeProvider1, timeProvider2]
+    dateClockCid <- submit timeProvider1 do
+      exerciseCmd dateClockCid Accept with provider = timeProvider1
     dateClockCid <- submit timeProvider2 do
-      exerciseCmd dateClockCid Advance with advancer = timeProvider2
+      exerciseCmd dateClockCid Accept with provider = timeProvider2
 
-    let contracts = Contracts with operatorRoleCid
-    return (parties, contracts, house, leaseTerms)
+    submit timeProvider1 do
+      exerciseCmd dateClockCid Advance with advancer=timeProvider1
+
+    -- End Ledger Initialization 
+    dateClockQ <- query @DateClock timeProvider2
+    let (dateClockCid, _) = L.head dateClockQ
+    submit timeProvider2 do
+      exerciseCmd dateClockCid Advance with advancer=timeProvider2
+
+    dateClockQ <- query @DateClock timeProvider2
+
+    let (dateClockCid, _) = L.head dateClockQ
+    submit timeProvider2 do
+      exerciseCmd dateClockCid Advance with advancer=timeProvider2
+
+    return (parties, house, leaseTerms, today)
 

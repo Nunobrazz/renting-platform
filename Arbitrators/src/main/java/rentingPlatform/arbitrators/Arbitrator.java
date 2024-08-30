@@ -33,33 +33,11 @@ public class Arbitrator {
     int ledgerApiPort = Integer.valueOf(args[1]);
     String individualParty = args[2];
 
-    debug("Runing as party: {}", individualParty );
-
-    ledger = new LedgerCommunication(ledgerhost, ledgerApiPort, individualParty);
-    
-
-    ledger.getInvitationsCurrentState();    
-    ledger.probeInvitations();
-    ledger.probeMIReports();
-    ledger.probeVotations();
-    
-    while (true) {
-      io.displayMenu();
-      System.out.printf("> Select Option: "); 
-      long option = sc.nextInt();
-      if (option == 1){
-        ledger.searchInvitations();
-      }
-      else if (option == 2){
-        ledger.createVotation();
-      }
-      else if (option == 3){
-        ledger.submitVote();
-      }
-      else{
-        System.out.println("Invalid Option");
-      }
-      Thread.sleep(1000);
+    try{
+      ledger = new LedgerCommunication(ledgerhost, ledgerApiPort, individualParty);
+      io.displayMainMenu(ledger);
+    }catch(Exception e){
+      e.printStackTrace();
     }
   }
 

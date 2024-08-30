@@ -38,10 +38,10 @@ import java.util.Objects;
 import java.util.Optional;
 import rentingPlatform.codegen.da.set.types.Set;
 import rentingPlatform.codegen.platform.types.la.LAkey;
-import rentingPlatform.codegen.time.clock.DateClock;
+import rentingPlatform.codegen.time.clock.DateClockUpdateEvent;
 
 public final class Evolve extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b", "Time.Lifecycle.Evolve", "Evolve");
+  public static final Identifier TEMPLATE_ID = new Identifier("a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76", "Time.Lifecycle.Evolve", "Evolve");
 
   public static final Choice<Evolve, AddLA, ContractId> CHOICE_AddLA = 
       Choice.create("AddLA", value$ -> value$.toValue(), value$ -> AddLA.valueDecoder()
@@ -126,8 +126,9 @@ public final class Evolve extends Template {
    * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseProcessEvent} instead
    */
   @Deprecated
-  public Update<Exercised<Unit>> createAndExerciseProcessEvent(DateClock.ContractId clockCid) {
-    return createAndExerciseProcessEvent(new ProcessEvent(clockCid));
+  public Update<Exercised<Unit>> createAndExerciseProcessEvent(
+      DateClockUpdateEvent.ContractId eventCid) {
+    return createAndExerciseProcessEvent(new ProcessEvent(eventCid));
   }
 
   public static Update<Created<ContractId>> create(String operator, String lifecycler,
@@ -294,8 +295,8 @@ public final class Evolve extends Template {
       return makeExerciseCmd(CHOICE_ProcessEvent, arg);
     }
 
-    default Update<Exercised<Unit>> exerciseProcessEvent(DateClock.ContractId clockCid) {
-      return exerciseProcessEvent(new ProcessEvent(clockCid));
+    default Update<Exercised<Unit>> exerciseProcessEvent(DateClockUpdateEvent.ContractId eventCid) {
+      return exerciseProcessEvent(new ProcessEvent(eventCid));
     }
   }
 

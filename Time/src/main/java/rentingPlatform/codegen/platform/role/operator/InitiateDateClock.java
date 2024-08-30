@@ -27,7 +27,7 @@ import java.util.Objects;
 import rentingPlatform.codegen.da.set.types.Set;
 
 public class InitiateDateClock extends DamlRecord<InitiateDateClock> {
-  public static final String _packageId = "c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b";
+  public static final String _packageId = "5ae51270ec4a11d9604cfaab6537a2e27343abd8466ec27da360aec2fd9e3a8d";
 
   public final String operator;
 
@@ -35,16 +35,13 @@ public class InitiateDateClock extends DamlRecord<InitiateDateClock> {
 
   public final LocalDate clockDate;
 
-  public final String public$;
-
   public final Set<String> waitingAccept;
 
   public InitiateDateClock(String operator, List<String> providers, LocalDate clockDate,
-      String public$, Set<String> waitingAccept) {
+      Set<String> waitingAccept) {
     this.operator = operator;
     this.providers = providers;
     this.clockDate = clockDate;
-    this.public$ = public$;
     this.waitingAccept = waitingAccept;
   }
 
@@ -59,42 +56,39 @@ public class InitiateDateClock extends DamlRecord<InitiateDateClock> {
   public static ValueDecoder<InitiateDateClock> valueDecoder() throws IllegalArgumentException {
     return value$ -> {
       Value recordValue$ = value$;
-      List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(5,0,
+      List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(4,0,
           recordValue$);
       String operator = PrimitiveValueDecoders.fromParty.decode(fields$.get(0).getValue());
       List<String> providers = PrimitiveValueDecoders.fromList(PrimitiveValueDecoders.fromParty)
           .decode(fields$.get(1).getValue());
       LocalDate clockDate = PrimitiveValueDecoders.fromDate.decode(fields$.get(2).getValue());
-      String public$ = PrimitiveValueDecoders.fromParty.decode(fields$.get(3).getValue());
       Set<String> waitingAccept =
           Set.<java.lang.String>valueDecoder(PrimitiveValueDecoders.fromParty)
-          .decode(fields$.get(4).getValue());
-      return new InitiateDateClock(operator, providers, clockDate, public$, waitingAccept);
+          .decode(fields$.get(3).getValue());
+      return new InitiateDateClock(operator, providers, clockDate, waitingAccept);
     } ;
   }
 
   public com.daml.ledger.javaapi.data.DamlRecord toValue() {
-    ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field> fields = new ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field>(5);
+    ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field> fields = new ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field>(4);
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("operator", new Party(this.operator)));
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("providers", this.providers.stream().collect(DamlCollectors.toDamlList(v$0 -> new Party(v$0)))));
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("clockDate", new Date((int) this.clockDate.toEpochDay())));
-    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("public", new Party(this.public$)));
     fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("waitingAccept", this.waitingAccept.toValue(v$0 -> new Party(v$0))));
     return new com.daml.ledger.javaapi.data.DamlRecord(fields);
   }
 
   public static JsonLfDecoder<InitiateDateClock> jsonDecoder() {
-    return JsonLfDecoders.record(Arrays.asList("operator", "providers", "clockDate", "public$", "waitingAccept"), name -> {
+    return JsonLfDecoders.record(Arrays.asList("operator", "providers", "clockDate", "waitingAccept"), name -> {
           switch (name) {
             case "operator": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
             case "providers": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.list(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
             case "clockDate": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(2, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.date);
-            case "public$": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
-            case "waitingAccept": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(4, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
+            case "waitingAccept": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
             default: return null;
           }
         }
-        , (Object[] args) -> new InitiateDateClock(JsonLfDecoders.cast(args[0]), JsonLfDecoders.cast(args[1]), JsonLfDecoders.cast(args[2]), JsonLfDecoders.cast(args[3]), JsonLfDecoders.cast(args[4])));
+        , (Object[] args) -> new InitiateDateClock(JsonLfDecoders.cast(args[0]), JsonLfDecoders.cast(args[1]), JsonLfDecoders.cast(args[2]), JsonLfDecoders.cast(args[3])));
   }
 
   public static InitiateDateClock fromJson(String json) throws JsonLfDecoder.Error {
@@ -106,7 +100,6 @@ public class InitiateDateClock extends DamlRecord<InitiateDateClock> {
         JsonLfEncoders.Field.of("operator", apply(JsonLfEncoders::party, operator)),
         JsonLfEncoders.Field.of("providers", apply(JsonLfEncoders.list(JsonLfEncoders::party), providers)),
         JsonLfEncoders.Field.of("clockDate", apply(JsonLfEncoders::date, clockDate)),
-        JsonLfEncoders.Field.of("public$", apply(JsonLfEncoders::party, public$)),
         JsonLfEncoders.Field.of("waitingAccept", apply(_x0 -> _x0.jsonEncoder(JsonLfEncoders::party), waitingAccept)));
   }
 
@@ -125,19 +118,17 @@ public class InitiateDateClock extends DamlRecord<InitiateDateClock> {
     return Objects.equals(this.operator, other.operator) &&
         Objects.equals(this.providers, other.providers) &&
         Objects.equals(this.clockDate, other.clockDate) &&
-        Objects.equals(this.public$, other.public$) &&
         Objects.equals(this.waitingAccept, other.waitingAccept);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.operator, this.providers, this.clockDate, this.public$,
-        this.waitingAccept);
+    return Objects.hash(this.operator, this.providers, this.clockDate, this.waitingAccept);
   }
 
   @Override
   public String toString() {
-    return String.format("rentingPlatform.codegen.platform.role.operator.InitiateDateClock(%s, %s, %s, %s, %s)",
-        this.operator, this.providers, this.clockDate, this.public$, this.waitingAccept);
+    return String.format("rentingPlatform.codegen.platform.role.operator.InitiateDateClock(%s, %s, %s, %s)",
+        this.operator, this.providers, this.clockDate, this.waitingAccept);
   }
 }

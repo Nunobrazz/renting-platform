@@ -12,7 +12,6 @@ template Iou
   where
     signatory creator
     ensure amount > 0
-
     observer owner, debtor
 
 

@@ -25,28 +25,23 @@ public class TimeProvider {
     debug("Runing as party: {}", timeProviderParty);
     debug("Runing as party: {}", lifecyclerParty);
     
-    LedgerCommunication ledger = new LedgerCommunication(ledgerhost, ledgerApiPort, timeProviderParty, lifecyclerParty);
+    try{
+      LedgerCommunication ledger = new LedgerCommunication(ledgerhost, ledgerApiPort, timeProviderParty, lifecyclerParty);
     
 
-
-    ledger.getCurrentState();
-
-    ledger.probeDateClocks();
-    ledger.probeEvolve();
-
-
-
-
-
-    while (true) {
-      try {
-        System.out.printf("\n\nPress enter to advance one day.");
-        System.in.read(); 
-        ledger.advanceClock();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+      ledger.getCurrentState();
+      ledger.probeDateClocks();
+      ledger.probeEvolve();
+  
+  
+      while (true) {
+          System.in.read(); 
+          ledger.advanceClock();
+      } 
+    }catch (Exception e){
+      e.printStackTrace();
     } 
+
   }
 
   public static void debug(String s1 , Object  s2) {

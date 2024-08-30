@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class Accept extends DamlRecord<Accept> {
-  public static final String _packageId = "c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b";
+  public static final String _packageId = "a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76";
 
   public final String arbitrator;
 

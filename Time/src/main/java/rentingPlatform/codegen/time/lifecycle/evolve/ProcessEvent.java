@@ -20,15 +20,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import rentingPlatform.codegen.time.clock.DateClock;
+import rentingPlatform.codegen.time.clock.DateClockUpdateEvent;
 
 public class ProcessEvent extends DamlRecord<ProcessEvent> {
-  public static final String _packageId = "c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b";
+  public static final String _packageId = "a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76";
 
-  public final DateClock.ContractId clockCid;
+  public final DateClockUpdateEvent.ContractId eventCid;
 
-  public ProcessEvent(DateClock.ContractId clockCid) {
-    this.clockCid = clockCid;
+  public ProcessEvent(DateClockUpdateEvent.ContractId eventCid) {
+    this.eventCid = eventCid;
   }
 
   /**
@@ -44,22 +44,22 @@ public class ProcessEvent extends DamlRecord<ProcessEvent> {
       Value recordValue$ = value$;
       List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(1,0,
           recordValue$);
-      DateClock.ContractId clockCid =
-          new DateClock.ContractId(fields$.get(0).getValue().asContractId().orElseThrow(() -> new IllegalArgumentException("Expected clockCid to be of type com.daml.ledger.javaapi.data.ContractId")).getValue());
-      return new ProcessEvent(clockCid);
+      DateClockUpdateEvent.ContractId eventCid =
+          new DateClockUpdateEvent.ContractId(fields$.get(0).getValue().asContractId().orElseThrow(() -> new IllegalArgumentException("Expected eventCid to be of type com.daml.ledger.javaapi.data.ContractId")).getValue());
+      return new ProcessEvent(eventCid);
     } ;
   }
 
   public com.daml.ledger.javaapi.data.DamlRecord toValue() {
     ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field> fields = new ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field>(1);
-    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("clockCid", this.clockCid.toValue()));
+    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("eventCid", this.eventCid.toValue()));
     return new com.daml.ledger.javaapi.data.DamlRecord(fields);
   }
 
   public static JsonLfDecoder<ProcessEvent> jsonDecoder() {
-    return JsonLfDecoders.record(Arrays.asList("clockCid"), name -> {
+    return JsonLfDecoders.record(Arrays.asList("eventCid"), name -> {
           switch (name) {
-            case "clockCid": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.contractId(rentingPlatform.codegen.time.clock.DateClock.ContractId::new));
+            case "eventCid": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.contractId(rentingPlatform.codegen.time.clock.DateClockUpdateEvent.ContractId::new));
             default: return null;
           }
         }
@@ -72,7 +72,7 @@ public class ProcessEvent extends DamlRecord<ProcessEvent> {
 
   public JsonLfEncoder jsonEncoder() {
     return JsonLfEncoders.record(
-        JsonLfEncoders.Field.of("clockCid", apply(JsonLfEncoders::contractId, clockCid)));
+        JsonLfEncoders.Field.of("eventCid", apply(JsonLfEncoders::contractId, eventCid)));
   }
 
   @Override
@@ -87,17 +87,17 @@ public class ProcessEvent extends DamlRecord<ProcessEvent> {
       return false;
     }
     ProcessEvent other = (ProcessEvent) object;
-    return Objects.equals(this.clockCid, other.clockCid);
+    return Objects.equals(this.eventCid, other.eventCid);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.clockCid);
+    return Objects.hash(this.eventCid);
   }
 
   @Override
   public String toString() {
     return String.format("rentingPlatform.codegen.time.lifecycle.evolve.ProcessEvent(%s)",
-        this.clockCid);
+        this.eventCid);
   }
 }

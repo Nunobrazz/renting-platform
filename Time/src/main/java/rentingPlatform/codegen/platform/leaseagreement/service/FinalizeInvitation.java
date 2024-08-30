@@ -24,7 +24,7 @@ import java.util.Objects;
 import rentingPlatform.codegen.platform.leaseagreement.modelmi.InviteArbitrators;
 
 public class FinalizeInvitation extends DamlRecord<FinalizeInvitation> {
-  public static final String _packageId = "c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b";
+  public static final String _packageId = "db91a2da2f80128454399885f9a301b2e138ef6d260d1ea238b04783a008ff7a";
 
   public final String inviter;
 

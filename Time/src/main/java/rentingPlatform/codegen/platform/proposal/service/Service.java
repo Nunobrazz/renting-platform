@@ -46,7 +46,7 @@ import rentingPlatform.codegen.platform.types.common.House;
 import rentingPlatform.codegen.platform.types.common.LeaseTerms;
 
 public final class Service extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b", "Platform.Proposal.Service", "Service");
+  public static final Identifier TEMPLATE_ID = new Identifier("a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76", "Platform.Proposal.Service", "Service");
 
   public static final Choice<Service, RejectProposal, Unit> CHOICE_RejectProposal = 
       Choice.create("RejectProposal", value$ -> value$.toValue(), value$ ->

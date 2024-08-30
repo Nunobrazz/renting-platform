@@ -2,24 +2,19 @@ module Test.LAcreation where
 
 import Daml.Script
 import Test.Roles qualified as Roles
-import Platform.Role.Operator qualified as Operator (Role,ApproveProposalServiceRequest(..), ApproveLeaseAgreementService(..))
-import Platform.Proposal.Service qualified as Proposal
-import Platform.LeaseAgreement.Service qualified as LA (Service)
+import Platform.Proposal 
+import Platform.Service qualified as LA
 import Platform.Types.Common 
 
 
 
-data Contracts = Contracts
-  with
-    operatorRoleCid : ContractId Operator.Role
-    laServiceCid : ContractId LA.Service
 
 
 
-laCreation : Script (Roles.Parties, Contracts, House, LeaseTerms)
+laCreation : Script (Roles.Parties, ContractId LA.Service, House, LeaseTerms, Date)
 laCreation = script do
 
-    (parties, oldContracts, house, leaseTerms) <- Roles.init
+    (parties, house, leaseTerms, today) <- Roles.init
 
 
     let alice = parties.alice            
@@ -28,38 +23,22 @@ laCreation = script do
         admin = parties.admin            
         timeProvider1 = parties.timeProvider1
 
-        operatorRoleCid = oldContracts.operatorRoleCid
 
+    bobProposalCid <- submit bob do
+        createCmd Proposal with  tenant=bob, house; leaseTerms
+    
+    laReqCid <- submit alice do
+        exerciseCmd bobProposalCid Accept with operator
         
-    -- Bob requests the access to the proposal service
-    bobProposalReqCid <- submit bob do
-        createCmd Proposal.Request with operator; proposer=bob, house
-
-    -- Operator Approves bob request for the access to the proposal service
-    bobProposalServiceCid <- submit operator do 
-        exerciseCmd operatorRoleCid Operator.ApproveProposalServiceRequest with proposalReqCid = bobProposalReqCid
-
-    -- Bob Creates a Proposal throught the service 
-    bobProposalCid <- submit bob do
-        exerciseCmd bobProposalServiceCid Proposal.CreateProposal with proposer=bob; house; leaseTerms
-    
-    -- Alice Accepts Bobs proposal 
-    bobProposalCid <- submit alice do
-        exerciseCmd bobProposalServiceCid Proposal.AcceptProposal with proposalCid=bobProposalCid
-    
-    -- Bob Signs the proposal 
-    bobProposalCid <- submit bob do
-        exerciseCmd bobProposalServiceCid Proposal.SignProposal with proposalCid=bobProposalCid; signer=bob
-    
-    -- Bob (or Alice) Requests the creation of the Lease Agreement  
-    bobLAreqCid <- submit bob do
-        exerciseCmd bobProposalServiceCid Proposal.RequestLeaseAgreement with signer=bob; proposalCid=bobProposalCid
-    
     -- Operator Approves bob request for the Lease Agreemnet
     laServiceCid <- submit operator do
-        exerciseCmd operatorRoleCid Operator.ApproveLeaseAgreementService with laServiceReqCid=bobLAreqCid; lifecycler=parties.lifecycler
+        exerciseCmd laReqCid LA.Approve with evolveId="1"
+
+    --laServiceCid <- submit operator do
+    --    exerciseCmd operatorRoleCid Operator.ApproveLeaseAgreementService with laServiceReqCid=bobLAreqCid; evolveId="1"
 
 
-    let contracts = Contracts with operatorRoleCid; laServiceCid
 
-    return (parties, contracts, house, leaseTerms)
+    return (parties, laServiceCid, house, leaseTerms, today)
+
+

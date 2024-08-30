@@ -3,23 +3,23 @@ module Time.Lifecycle.Evolve where
 
 import qualified DA.Set as S
 import DA.Foldable (forA_)
-
 import Platform.Types.LA 
-
 import Time.Clock 
-import Platform.LeaseAgreement.ModelLA
+import Platform.ModelLA
 
 
--- Disapear because maybe host does the claim when he wants
 template Evolve
   with
     operator : Party  
     lifecycler : Party 
     laKeys : LAkeys
+    id : Text
   where 
     signatory operator
     observer lifecycler
- 
+
+    key (operator, id) : (Party, Text)  
+    maintainer key._1
     
     choice AddLA : ContractId Evolve 
       with
@@ -29,16 +29,13 @@ template Evolve
         create this with laKeys = S.insert laKey laKeys 
         
 
-    -- The verification of the payment date is done here to interrupt during less time other interactions with the LA-SC
     nonconsuming choice ProcessEvent : ()
       with 
-        clockCid : ContractId DateClock
-      controller lifecycler
+        eventCid : ContractId DateClockUpdateEvent
+      controller lifecycler, operator
       do 
-
-        DateClock{clockDate} <- fetch clockCid
 
         forA_ laKeys (\laKey ->
           do 
-            exerciseByKey @LeaseAgreement laKey ProcessPayment with date = clockDate
+            exerciseByKey @LeaseAgreement laKey ProcessPayment with eventCid
           )

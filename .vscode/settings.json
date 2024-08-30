@@ -2,6 +2,11 @@
   "java.configuration.updateBuildConfiguration": "interactive",
   "java.project.sourcePaths": [
     "Time/src/main/java",
-    "Arbitrators/src/main/java"
-  ]
+    "Arbitrators/src/main/java",
+    "User/src/main/java/rentingPlatform/user"
+  ],
+  "files.readonlyInclude": {
+    "**/.daml/unpacked-dars/**": true
+  },
+  "java.compile.nullAnalysis.mode": "automatic"
 }

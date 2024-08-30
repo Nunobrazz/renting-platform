@@ -1,95 +1,87 @@
 module Time.Clock where 
 
 
-import DA.Date (addDays)
+import DA.Date
 import Types.Common (Parties)
 import DA.List qualified as L
 import DA.Set qualified as S
 
 
 
-{-- | Event signalling the update of a `DateClock`. 
+-- | Event signalling the update of a `DateClock`. If not observers could exercice choices in DateClock and Spam it
 template DateClockUpdateEvent
   with
     creator : Party
       -- ^ Provider of the event.
     eventDate : Date
       -- ^ The event time.
-    --id : Id
-      -- ^ Event identifier.
     observers : Parties
       -- ^ The clock's observers.
+    operator : Party -- The operator act as signatory to not allow the creation of a DateClockUpdateEvent by a single party.
+
+    providers: [Party]
   where
-    signatory creator
+    signatory creator, operator, providers -- Maybe remove creator from here no? in the document i didnt put it
     observer observers  
     key (creator, eventDate) : (Party, Date)
     maintainer key._1
---}
+
 
 -- | Used to keep track of the current date.
 template DateClock
   with
     operator : Party
-
     providers : [Party]
-      -- ^ The clock's provider.
     clockDate : Date
-      -- ^ The clock's date.
-    public : Party
-      -- ^ Observers.
+    creator : Party
     waitingAccept : Parties
   where
-    signatory providers, operator
+    signatory operator, providers
     observer waitingAccept
 
-    -- if a new provider is added it should be the next one to advance
-    choice AddProvider : ContractId DateClock
-      with 
-        newProvider : Party
-      controller operator
-      do 
-        create this with waitingAccept = S.insert newProvider waitingAccept 
-    
     choice Accept : ContractId DateClock
-      with 
-        newProvider : Party
-      controller newProvider
-      do 
-        create this with providers = newProvider :: providers
-
-    nonconsuming choice Advance : ContractId DateClock
+      with
+        provider : Party
+      controller provider
+      do create this with providers = provider :: providers; waitingAccept = S.delete provider waitingAccept 
+ 
+    nonconsuming choice Advance : ContractId DateClockUpdateEvent
         -- ^ Advance time to its next state.
         with
           advancer : Party
         controller advancer
         do
-          assertMsg "Tried to advance clock without permission." (advancer == L.head providers)
-          moveClock this self 1 advancer  
+          now <- getTime 
+          let nowDate = toDateUTC now
+              offset = subDate nowDate clockDate
+              offset = 1 -- for debug
+          assertMsg "The offset must be bigger then 0." (offset > 0)
+          --assertMsg "Tried to advance clock without permission." (advancer == L.head providers) doesnt garantee the evil will wait for the end of the day
+          moveClock this self offset advancer  
 
 
 -- | HIDE
-moveClock : DateClock -> ContractId DateClock -> Int -> Party -> Update (ContractId DateClock)
+moveClock : DateClock -> ContractId DateClock -> Int -> Party -> Update (ContractId DateClockUpdateEvent)
 
-moveClock this@DateClock {clockDate; providers} self offset advancer = do 
+moveClock this@DateClock {clockDate; providers; creator; operator} self offset advancer = do 
   let
     newDate = addDays clockDate offset
-    previousCreator = L.last providers
-    newProviders = L.tail providers ++ [advancer]
-    clock = this with clockDate=newDate; providers = newProviders
-
+    --newProviders = L.tail providers ++ [advancer] for permissions (assert in advance)
+    clock = this with clockDate=newDate; providers; creator=advancer
 
   -- atomic
-  -- exerciseByKey @DateClockUpdateEvent (previousCreator, clockDate) Archive   -- archive old event
-
-
-  archive self                                                          -- archive clock
-  clockCid <- create clock                                              -- create clock
-  {--create DateClockUpdateEvent with                                      -- create event
+  (dateClockUpdateEventCid,DateClockUpdateEvent{observers}) <- fetchByKey @DateClockUpdateEvent (creator, clockDate)
+  archive dateClockUpdateEventCid                                            -- archive old event
+  archive self                                                               -- archive clock
+  clockCid <- create clock                                                   -- create clock
+  create DateClockUpdateEvent with                                           -- create event
     creator=advancer
     observers
     eventDate = clock.clockDate
-  -- atomic--}
+    operator
+    providers
+  -- atomic
 
-  pure clockCid
+  --pure clockCid
 
 

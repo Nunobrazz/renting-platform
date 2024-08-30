@@ -29,7 +29,7 @@ import java.util.Objects;
 import rentingPlatform.codegen.platform.types.mi.Responsability;
 
 public class CreateVotation extends DamlRecord<CreateVotation> {
-  public static final String _packageId = "c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b";
+  public static final String _packageId = "a96e12c7fe0ac0a242f1dd76db8309d364fb0f74364a16f36533d18f9499abe8";
 
   public final String visitor;
 

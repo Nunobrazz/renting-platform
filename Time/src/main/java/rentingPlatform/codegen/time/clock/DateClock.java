@@ -42,20 +42,15 @@ import java.util.Optional;
 import rentingPlatform.codegen.da.set.types.Set;
 
 public final class DateClock extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b", "Time.Clock", "DateClock");
+  public static final Identifier TEMPLATE_ID = new Identifier("a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76", "Time.Clock", "DateClock");
+
+  public static final Choice<DateClock, Advance, DateClockUpdateEvent.ContractId> CHOICE_Advance = 
+      Choice.create("Advance", value$ -> value$.toValue(), value$ -> Advance.valueDecoder()
+        .decode(value$), value$ ->
+        new DateClockUpdateEvent.ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
 
   public static final Choice<DateClock, Accept, ContractId> CHOICE_Accept = 
       Choice.create("Accept", value$ -> value$.toValue(), value$ -> Accept.valueDecoder()
-        .decode(value$), value$ ->
-        new ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
-
-  public static final Choice<DateClock, Advance, ContractId> CHOICE_Advance = 
-      Choice.create("Advance", value$ -> value$.toValue(), value$ -> Advance.valueDecoder()
-        .decode(value$), value$ ->
-        new ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
-
-  public static final Choice<DateClock, AddProvider, ContractId> CHOICE_AddProvider = 
-      Choice.create("AddProvider", value$ -> value$.toValue(), value$ -> AddProvider.valueDecoder()
         .decode(value$), value$ ->
         new ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
 
@@ -67,8 +62,7 @@ public final class DateClock extends Template {
   public static final ContractCompanion.WithoutKey<Contract, ContractId, DateClock> COMPANION = 
       new ContractCompanion.WithoutKey<>("rentingPlatform.codegen.time.clock.DateClock",
         TEMPLATE_ID, ContractId::new, v -> DateClock.templateValueDecoder().decode(v),
-        DateClock::fromJson, Contract::new, List.of(CHOICE_Accept, CHOICE_Advance,
-        CHOICE_AddProvider, CHOICE_Archive));
+        DateClock::fromJson, Contract::new, List.of(CHOICE_Advance, CHOICE_Accept, CHOICE_Archive));
 
   public final String operator;
 
@@ -76,22 +70,39 @@ public final class DateClock extends Template {
 
   public final LocalDate clockDate;
 
-  public final String public$;
+  public final String creator;
 
   public final Set<String> waitingAccept;
 
-  public DateClock(String operator, List<String> providers, LocalDate clockDate, String public$,
+  public DateClock(String operator, List<String> providers, LocalDate clockDate, String creator,
       Set<String> waitingAccept) {
     this.operator = operator;
     this.providers = providers;
     this.clockDate = clockDate;
-    this.public$ = public$;
+    this.creator = creator;
     this.waitingAccept = waitingAccept;
   }
 
   @Override
   public Update<Created<ContractId>> create() {
     return new Update.CreateUpdate<ContractId, Created<ContractId>>(new CreateCommand(DateClock.TEMPLATE_ID, this.toValue()), x -> x, ContractId::new);
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseAdvance} instead
+   */
+  @Deprecated
+  public Update<Exercised<DateClockUpdateEvent.ContractId>> createAndExerciseAdvance(Advance arg) {
+    return createAnd().exerciseAdvance(arg);
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseAdvance} instead
+   */
+  @Deprecated
+  public Update<Exercised<DateClockUpdateEvent.ContractId>> createAndExerciseAdvance(
+      String advancer) {
+    return createAndExerciseAdvance(new Advance(advancer));
   }
 
   /**
@@ -106,40 +117,8 @@ public final class DateClock extends Template {
    * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseAccept} instead
    */
   @Deprecated
-  public Update<Exercised<ContractId>> createAndExerciseAccept(String newProvider) {
-    return createAndExerciseAccept(new Accept(newProvider));
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseAdvance} instead
-   */
-  @Deprecated
-  public Update<Exercised<ContractId>> createAndExerciseAdvance(Advance arg) {
-    return createAnd().exerciseAdvance(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseAdvance} instead
-   */
-  @Deprecated
-  public Update<Exercised<ContractId>> createAndExerciseAdvance(String advancer) {
-    return createAndExerciseAdvance(new Advance(advancer));
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseAddProvider} instead
-   */
-  @Deprecated
-  public Update<Exercised<ContractId>> createAndExerciseAddProvider(AddProvider arg) {
-    return createAnd().exerciseAddProvider(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseAddProvider} instead
-   */
-  @Deprecated
-  public Update<Exercised<ContractId>> createAndExerciseAddProvider(String newProvider) {
-    return createAndExerciseAddProvider(new AddProvider(newProvider));
+  public Update<Exercised<ContractId>> createAndExerciseAccept(String provider) {
+    return createAndExerciseAccept(new Accept(provider));
   }
 
   /**
@@ -160,8 +139,8 @@ public final class DateClock extends Template {
   }
 
   public static Update<Created<ContractId>> create(String operator, List<String> providers,
-      LocalDate clockDate, String public$, Set<String> waitingAccept) {
-    return new DateClock(operator, providers, clockDate, public$, waitingAccept).create();
+      LocalDate clockDate, String creator, Set<String> waitingAccept) {
+    return new DateClock(operator, providers, clockDate, creator, waitingAccept).create();
   }
 
   @Override
@@ -191,7 +170,7 @@ public final class DateClock extends Template {
     fields.add(new DamlRecord.Field("operator", new Party(this.operator)));
     fields.add(new DamlRecord.Field("providers", this.providers.stream().collect(DamlCollectors.toDamlList(v$0 -> new Party(v$0)))));
     fields.add(new DamlRecord.Field("clockDate", new Date((int) this.clockDate.toEpochDay())));
-    fields.add(new DamlRecord.Field("public", new Party(this.public$)));
+    fields.add(new DamlRecord.Field("creator", new Party(this.creator)));
     fields.add(new DamlRecord.Field("waitingAccept", this.waitingAccept.toValue(v$0 -> new Party(v$0))));
     return new DamlRecord(fields);
   }
@@ -204,21 +183,21 @@ public final class DateClock extends Template {
       List<String> providers = PrimitiveValueDecoders.fromList(PrimitiveValueDecoders.fromParty)
           .decode(fields$.get(1).getValue());
       LocalDate clockDate = PrimitiveValueDecoders.fromDate.decode(fields$.get(2).getValue());
-      String public$ = PrimitiveValueDecoders.fromParty.decode(fields$.get(3).getValue());
+      String creator = PrimitiveValueDecoders.fromParty.decode(fields$.get(3).getValue());
       Set<String> waitingAccept =
           Set.<java.lang.String>valueDecoder(PrimitiveValueDecoders.fromParty)
           .decode(fields$.get(4).getValue());
-      return new DateClock(operator, providers, clockDate, public$, waitingAccept);
+      return new DateClock(operator, providers, clockDate, creator, waitingAccept);
     } ;
   }
 
   public static JsonLfDecoder<DateClock> jsonDecoder() {
-    return JsonLfDecoders.record(Arrays.asList("operator", "providers", "clockDate", "public$", "waitingAccept"), name -> {
+    return JsonLfDecoders.record(Arrays.asList("operator", "providers", "clockDate", "creator", "waitingAccept"), name -> {
           switch (name) {
             case "operator": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
             case "providers": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.list(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
             case "clockDate": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(2, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.date);
-            case "public$": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
+            case "creator": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
             case "waitingAccept": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(4, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
             default: return null;
           }
@@ -235,7 +214,7 @@ public final class DateClock extends Template {
         JsonLfEncoders.Field.of("operator", apply(JsonLfEncoders::party, operator)),
         JsonLfEncoders.Field.of("providers", apply(JsonLfEncoders.list(JsonLfEncoders::party), providers)),
         JsonLfEncoders.Field.of("clockDate", apply(JsonLfEncoders::date, clockDate)),
-        JsonLfEncoders.Field.of("public$", apply(JsonLfEncoders::party, public$)),
+        JsonLfEncoders.Field.of("creator", apply(JsonLfEncoders::party, creator)),
         JsonLfEncoders.Field.of("waitingAccept", apply(_x0 -> _x0.jsonEncoder(JsonLfEncoders::party), waitingAccept)));
   }
 
@@ -258,20 +237,20 @@ public final class DateClock extends Template {
     return Objects.equals(this.operator, other.operator) &&
         Objects.equals(this.providers, other.providers) &&
         Objects.equals(this.clockDate, other.clockDate) &&
-        Objects.equals(this.public$, other.public$) &&
+        Objects.equals(this.creator, other.creator) &&
         Objects.equals(this.waitingAccept, other.waitingAccept);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.operator, this.providers, this.clockDate, this.public$,
+    return Objects.hash(this.operator, this.providers, this.clockDate, this.creator,
         this.waitingAccept);
   }
 
   @Override
   public String toString() {
     return String.format("rentingPlatform.codegen.time.clock.DateClock(%s, %s, %s, %s, %s)",
-        this.operator, this.providers, this.clockDate, this.public$, this.waitingAccept);
+        this.operator, this.providers, this.clockDate, this.creator, this.waitingAccept);
   }
 
   public static final class ContractId extends com.daml.ledger.javaapi.data.codegen.ContractId<DateClock> implements Exercises<ExerciseCommand> {
@@ -314,28 +293,20 @@ public final class DateClock extends Template {
   }
 
   public interface Exercises<Cmd> extends com.daml.ledger.javaapi.data.codegen.Exercises.Archive<Cmd> {
+    default Update<Exercised<DateClockUpdateEvent.ContractId>> exerciseAdvance(Advance arg) {
+      return makeExerciseCmd(CHOICE_Advance, arg);
+    }
+
+    default Update<Exercised<DateClockUpdateEvent.ContractId>> exerciseAdvance(String advancer) {
+      return exerciseAdvance(new Advance(advancer));
+    }
+
     default Update<Exercised<ContractId>> exerciseAccept(Accept arg) {
       return makeExerciseCmd(CHOICE_Accept, arg);
     }
 
-    default Update<Exercised<ContractId>> exerciseAccept(String newProvider) {
-      return exerciseAccept(new Accept(newProvider));
-    }
-
-    default Update<Exercised<ContractId>> exerciseAdvance(Advance arg) {
-      return makeExerciseCmd(CHOICE_Advance, arg);
-    }
-
-    default Update<Exercised<ContractId>> exerciseAdvance(String advancer) {
-      return exerciseAdvance(new Advance(advancer));
-    }
-
-    default Update<Exercised<ContractId>> exerciseAddProvider(AddProvider arg) {
-      return makeExerciseCmd(CHOICE_AddProvider, arg);
-    }
-
-    default Update<Exercised<ContractId>> exerciseAddProvider(String newProvider) {
-      return exerciseAddProvider(new AddProvider(newProvider));
+    default Update<Exercised<ContractId>> exerciseAccept(String provider) {
+      return exerciseAccept(new Accept(provider));
     }
 
     default Update<Exercised<Unit>> exerciseArchive(

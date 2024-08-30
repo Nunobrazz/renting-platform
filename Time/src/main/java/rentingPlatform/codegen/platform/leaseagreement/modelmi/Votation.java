@@ -47,7 +47,7 @@ import rentingPlatform.codegen.platform.types.mi.MIdetails;
 import rentingPlatform.codegen.platform.types.mi.Responsability;
 
 public final class Votation extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b", "Platform.LeaseAgreement.ModelMI", "Votation");
+  public static final Identifier TEMPLATE_ID = new Identifier("6f8aa7b9cc55c058b6c390e2373eb002e6ae583cca33cd7d2c6ebf6b2633dc23", "Platform.LeaseAgreement.ModelMI", "Votation");
 
   public static final Choice<Votation, rentingPlatform.codegen.da.internal.template.Archive, Unit> CHOICE_Archive = 
       Choice.create("Archive", value$ -> value$.toValue(), value$ ->

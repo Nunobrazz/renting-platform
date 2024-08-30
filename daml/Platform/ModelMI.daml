@@ -1,0 +1,199 @@
+module Platform.ModelMI where
+
+import DA.Set qualified as S
+import Types.Common
+import Platform.Types.MI 
+import Platform.Util
+
+template MIReport 
+  with
+    tenant : Party
+    host : Party
+    miDetails: MIdetails -- nabritrators bigger then 0
+    arbitrators : Parties
+    activeInvitation : Bool
+  where
+    signatory tenant, host 
+    observer arbitrators
+     
+    key (tenant, host, miDetails) : (Party, Party, MIdetails)
+    maintainer key._1 
+    ensure miDetails.nArbitrators > 0
+    
+    choice SetArbitrators : ContractId MIReport
+      with 
+        inviter : Party
+        arbitrators : Parties
+      controller inviter
+      do 
+        create this with arbitrators 
+    
+    choice CreatePoll : ContractId Poll -- how do i assure only one Poll can be created per mi By archiving this MI
+      with 
+        visitor : Party
+        visitDetails : Text
+        vote : Responsability
+        cost : Int
+        assessmentDate : Date
+        reparationDate : Date
+      controller visitor
+      do           
+        create Poll with tenant, host, miDetails; visitor; visitDetails; voters=arbitrators; assessmentDate;reparationDate;cost; alreadyVoted = S.fromList [visitor]; votes = [vote] --miReportCid=self; 
+
+
+
+template InviteArbitrators     -- arbitrators recieve notifications when others accept
+  with
+    tenant : Party
+    host : Party 
+    invited : Parties          -- Universal arbitrator party doesnt work because if n ot any party could enroll other arbitrators
+    confirmed : Parties
+    miDetails : MIdetails
+    miReportCid : ContractId MIReport
+  where
+    signatory tenant, host, confirmed -- inviter can create this inviting whoever he wants only if host signs too
+    observer invited
+
+    choice Accept : ContractId InviteArbitrators
+      with 
+        arbitrator : Party 
+      controller arbitrator
+      do
+        assertMsg "The Party is already confirmed in the MI." (S.notMember arbitrator confirmed)
+        assertMsg "Impossible to accept because the number of arbitrators has been matched." (S.size confirmed < miDetails.nArbitrators)
+
+        create this with confirmed = S.insert arbitrator confirmed; invited = S.delete arbitrator invited -- delete from invited
+    
+    choice ConfirmAttribution : ContractId MIReport
+      with 
+        inviter : Party
+      controller inviter
+      do
+        assertMsg "The expected number of arbitrators has not been reached." (S.size confirmed == miDetails.nArbitrators)
+        exercise miReportCid SetArbitrators with inviter; arbitrators=confirmed
+
+
+
+-- before they are allowed to vote the voters must be full
+template Poll
+  with 
+    tenant : Party
+    host : Party
+    miDetails : MIdetails
+    visitor : Party -- may have several
+    visitDetails : Text
+    assessmentDate : Date
+    reparationDate : Date
+    cost: Int 
+    voters : Parties  
+    alreadyVoted : Parties 
+    votes : [Responsability]
+  where 
+    signatory alreadyVoted, tenant, host -- Both MI parts agree with the votation
+    observer  voters
+    ensure (S.size voters == miDetails.nArbitrators)
+    choice Vote : ContractId Poll 
+      with
+        voter : Party
+        vote : Responsability
+      controller voter
+        do
+          assertMsg "This party is not allowd to submit a vote." (S.member voter (toVote this)) 
+          create Poll with tenant; host; miDetails; visitor; visitDetails; voters;assessmentDate;reparationDate; cost; alreadyVoted = S.insert voter voters; votes=vote :: votes --miReportCid
+
+    choice FinalizeVotation : ContractId MIresultArbitrators
+      with 
+        finalizer : Party
+      controller finalizer
+      do
+        assertMsg "Tried to finalize votation with out all votes completed." (alreadyVoted==voters)
+        let 
+          responsability = doVotesMean votes 
+          assessment = AssessmentDetails with responsability; cost; assessmentDate; reparationDate 
+        
+        create MIresultArbitrators with tenant; host; miDetails; arbitrators=voters; visitor; visitDetails; assessment
+
+
+toVote : Poll -> Parties
+toVote Poll {alreadyVoted, voters} = S.difference voters alreadyVoted
+
+
+template Assessment
+  with 
+    creator :  Party
+    signer : Party
+    assessment : AssessmentDetails
+    miDetails : MIdetails
+    miReportCid : ContractId MIReport
+  where 
+    signatory creator
+    observer  signer
+    --ensure creator /= signer && (((signer == tenant || signer == host) && (creator == tenant || creator == host)))
+    choice SignAssessment : ContractId MIresultFriendly 
+      with
+        signer : Party
+      controller signer
+        do          
+          create MIresultFriendly with assessmentCreator=creator; assessmentSigner=signer; miDetails; assessment
+          -- verifcar creator e singer para nao ser o mesmo
+
+
+template MIresultArbitrators
+  with 
+    tenant : Party
+    host : Party
+    miDetails : MIdetails
+    arbitrators : Parties
+    visitor : Party
+    visitDetails : Text
+    assessment : AssessmentDetails 
+  where 
+    signatory arbitrators
+    observer tenant, host
+
+template MIresultFriendly
+  with 
+    assessmentCreator : Party
+    assessmentSigner : Party
+    miDetails : MIdetails
+    assessment : AssessmentDetails 
+  where
+    signatory assessmentCreator, assessmentSigner
+
+
+-- must archive this
+template AvailableArbitratorsRequest
+  with 
+    public : Party
+    requester : Party
+  where
+    signatory requester
+    observer public
+
+
+template AvailableArbitrators
+  with 
+    operator : Party
+    arbitrators : Parties
+    observers : Parties
+  where
+    signatory operator
+    observer observers
+  
+    -- Anyone can create a new contract with the one that requested as observer
+    -- Creates a new AvailableArbitrators contract with just the requester as an observer
+    nonconsuming choice AddObserver : ContractId AvailableArbitrators
+      with
+        requestCid : ContractId AvailableArbitratorsRequest
+        public : Party
+      controller public
+        do         
+          AvailableArbitratorsRequest{requester} <- fetch requestCid
+          create this with operator; arbitrators; observers = S.fromList [requester] -- sem o public por privacidade
+    
+    choice AddArbitrator : ContractId AvailableArbitrators
+      with 
+        arbitrator : Party
+      controller operator
+        do 
+          create this with arbitrators = S.insert arbitrator arbitrators

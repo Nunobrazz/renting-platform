@@ -10,7 +10,6 @@ fi
 
 lifecycler=$(python3 -c "import sys, json; print(json.load(open('../parties.json', 'r'))['lifecycler'])")
 
-echo "$lifecycler"
 mvn exec:java@run-time -Dexec.args="localhost 6865 $timeProvider $lifecycler";
 
 

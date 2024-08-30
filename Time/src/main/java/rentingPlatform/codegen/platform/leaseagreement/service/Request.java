@@ -39,9 +39,10 @@ import java.util.Optional;
 import java.util.Set;
 import rentingPlatform.codegen.platform.types.common.House;
 import rentingPlatform.codegen.platform.types.common.LeaseTerms;
+import rentingPlatform.codegen.time.lifecycle.evolve.Evolve;
 
 public final class Request extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("c911fdfc3964813e1caa91849f67e4b0ec3b6260c2d032ebcdf01d6c820d721b", "Platform.LeaseAgreement.Service", "Request");
+  public static final Identifier TEMPLATE_ID = new Identifier("a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76", "Platform.LeaseAgreement.Service", "Request");
 
   public static final Choice<Request, Withdraw, Unit> CHOICE_Withdraw = 
       Choice.create("Withdraw", value$ -> value$.toValue(), value$ -> Withdraw.valueDecoder()
@@ -148,8 +149,9 @@ public final class Request extends Template {
    * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseApprove} instead
    */
   @Deprecated
-  public Update<Exercised<Service.ContractId>> createAndExerciseApprove(String lifecycler) {
-    return createAndExerciseApprove(new Approve(lifecycler));
+  public Update<Exercised<Service.ContractId>> createAndExerciseApprove(String lifecycler,
+      Evolve.ContractId evolveCid) {
+    return createAndExerciseApprove(new Approve(lifecycler, evolveCid));
   }
 
   public static Update<Created<ContractId>> create(String operator, String proposer, House house,
@@ -325,8 +327,9 @@ public final class Request extends Template {
       return makeExerciseCmd(CHOICE_Approve, arg);
     }
 
-    default Update<Exercised<Service.ContractId>> exerciseApprove(String lifecycler) {
-      return exerciseApprove(new Approve(lifecycler));
+    default Update<Exercised<Service.ContractId>> exerciseApprove(String lifecycler,
+        Evolve.ContractId evolveCid) {
+      return exerciseApprove(new Approve(lifecycler, evolveCid));
     }
   }
 

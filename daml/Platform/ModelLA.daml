@@ -1,0 +1,104 @@
+module Platform.ModelLA where
+
+import DA.List
+import DA.Set qualified as S
+import DA.Foldable (forA_)
+import Time.Lifecycle.Iou
+import Time.Clock 
+import Platform.Types.Common 
+import Platform.Types.LA 
+import Platform.Types.MI 
+import Platform.ModelMI
+import Platform.Util
+
+template LeaseAgreement
+  with
+    operator: Party
+    lifecycler : Party
+    tenant : Party         
+    house : House 
+    leaseTerms : LeaseTerms
+    paymentsToProcess : [Date] 
+  where
+    signatory operator, tenant, house.host   
+    observer lifecycler
+    ensure (not (leaseTerms.paymentDates /= [] && leaseTerms.beginingDate >= head leaseTerms.paymentDates)) && leaseTerms.nArbitrators > 0
+    key LAkey with tenant, house : (LAkey)
+    maintainer key.tenant, key.house.host
+
+
+    nonconsuming choice ProcessPayment :  ContractId LeaseAgreement
+      with 
+        eventCid : ContractId DateClockUpdateEvent
+      controller lifecycler
+      do
+        DateClockUpdateEvent{eventDate} <- fetch eventCid
+
+        let payments = filter ( <= eventDate) paymentsToProcess 
+            newPaymentsToProcess = filter ( > eventDate) paymentsToProcess 
+        if (not (null payments)) then 
+          do
+            forA_ payments (\payment ->
+              do
+                create Iou with creator=lifecycler; debtor=tenant; owner=house.host, amount=leaseTerms.agreedRent, paymentDate = payment; creationDate=eventDate
+              )
+            archive self
+            create LeaseAgreement with operator;lifecycler;tenant;house;leaseTerms; paymentsToProcess = newPaymentsToProcess
+        else do 
+          pure self
+
+
+
+      ---- BEGIN ---- MAINTENANCE ISSUES
+    nonconsuming choice CreateMI : ContractId MIReport
+      with 
+        reporter : Party
+        house : House
+        description : Text
+        startingDate : Date --put today date
+      controller reporter
+      do
+
+        assertMsg ("Creating the MI the reporter is neither tenant nor host.") (reporter == tenant || reporter == house.host)
+         
+        let miDetails = MIdetails with nArbitrators = leaseTerms.nArbitrators; house; startingDate; description
+
+        create MIReport with tenant; host = house.host; miDetails; arbitrators = S.empty; activeInvitation=False
+
+    nonconsuming choice SubmitAssessment : ContractId Assessment
+      with 
+        creator : Party
+        assessment : AssessmentDetails
+        miReportCid : ContractId MIReport
+      controller creator
+      do
+        MIReport{miDetails, arbitrators} <- fetch miReportCid -- can only create assessment if it hasn't already invoked arbitrators
+        --assertMsg "Cannot Submit Assessment because arbitrators where already invoked." (arbitrators /= null)
+        if creator == tenant then
+          create Assessment with creator=tenant; signer=house.host; miDetails; assessment; miReportCid
+        else 
+          create Assessment with creator=house.host; signer=tenant; miDetails; assessment; miReportCid
+
+    nonconsuming choice AcceptAssessment : ContractId MIresultFriendly
+      with 
+        signer : Party 
+        assessmentCid : ContractId Assessment
+      controller signer
+      do
+        exercise assessmentCid SignAssessment with signer
+
+    nonconsuming choice InvokeArbitrators : ContractId InviteArbitrators 
+      with
+        inviter : Party 
+        availableArbitratorsCid : ContractId AvailableArbitrators
+        miReportCid : ContractId MIReport
+      controller inviter
+      do
+        MIReport{tenant, host, miDetails, arbitrators, activeInvitation} <- fetchAndArchive miReportCid
+        assertMsg "There is already an active Invitation." (not activeInvitation)
+        miReportCid <- create MIReport with tenant; host; miDetails; arbitrators; activeInvitation=True
+        AvailableArbitrators{arbitrators} <- fetchAndArchive availableArbitratorsCid -- archived by operator
+        inviteArbitratorsCid <- create InviteArbitrators with tenant; host; invited=arbitrators; confirmed = S.empty; miDetails; miReportCid -- recently created miReport
+        pure inviteArbitratorsCid
+
+
