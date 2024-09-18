@@ -40,7 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public final class Message extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76", "User", "Message");
+  public static final Identifier TEMPLATE_ID = new Identifier("bef0965dc38d518ab3f749ea7cce7cf9cd13acb7b593b5f936707edcb2f1eff5", "User", "Message");
 
   public static final Choice<Message, rentingPlatform.codegen.da.internal.template.Archive, Unit> CHOICE_Archive = 
       Choice.create("Archive", value$ -> value$.toValue(), value$ ->

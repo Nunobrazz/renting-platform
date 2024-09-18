@@ -21,6 +21,7 @@ data AssessmentDetails=AssessmentDetails
 
 data MIdetails = MIdetails
   with
+    -- could add reporter
     nArbitrators : Int
     house : House
     startingDate : Date

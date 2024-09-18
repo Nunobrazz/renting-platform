@@ -1,6 +1,6 @@
 module Platform.Operator where
 
-
+{--
 import Platform.Service as LeaseAgreement (Request, Approve(..), Service)
 
 -- The operator role is the one that distributes the roles and aproves some stuff 
@@ -33,3 +33,4 @@ template Role
 ---- END ---- LEASE AGREEMENT
 
 
+--}

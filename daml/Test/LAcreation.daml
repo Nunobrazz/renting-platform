@@ -3,7 +3,7 @@ module Test.LAcreation where
 import Daml.Script
 import Test.Roles qualified as Roles
 import Platform.Proposal 
-import Platform.Service qualified as LA
+import Platform.ModelLA 
 import Platform.Types.Common 
 
 
@@ -11,29 +11,32 @@ import Platform.Types.Common
 
 
 
-laCreation : Script (Roles.Parties, ContractId LA.Service, House, LeaseTerms, Date)
+laCreation : Script (Roles.Parties, ContractId LeaseAgreement, House, LeaseTerms, Date)
 laCreation = script do
 
     (parties, house, leaseTerms, today) <- Roles.init
 
-
-    let alice = parties.alice            
+    let host = parties.alice            
         operator = parties.operator      
-        bob = parties.bob                
+        tenant = parties.bob                
         admin = parties.admin            
         timeProvider1 = parties.timeProvider1
 
-
-    bobProposalCid <- submit bob do
-        createCmd Proposal with  tenant=bob, house; leaseTerms
+   
+    tenantProposalCid <- submit tenant do
+        createCmd Proposal with tenant=tenant, house; leaseTerms; operator
     
-    laReqCid <- submit alice do
-        exerciseCmd bobProposalCid Accept with operator
+    laReqCid <- submit host do
+        exerciseCmd tenantProposalCid Accept with 
         
-    -- Operator Approves bob request for the Lease Agreemnet
     laServiceCid <- submit operator do
-        exerciseCmd laReqCid LA.Approve with evolveId="1"
+        exerciseCmd laReqCid Approve with evolveId="1"
 
+    
+    
+    
+    
+    
     --laServiceCid <- submit operator do
     --    exerciseCmd operatorRoleCid Operator.ApproveLeaseAgreementService with laServiceReqCid=bobLAreqCid; evolveId="1"
 

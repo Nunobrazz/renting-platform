@@ -19,7 +19,7 @@ initialize = do
 
   --passTime (days 19894)
 
-  (parties, laServiceCid, house, _, today) <- laCreation
+  (parties, laCid, house, _, today) <- laCreation
   let 
       laKey = LAkey with tenant = parties.bob; house 
 
@@ -28,7 +28,13 @@ initialize = do
   
   -- Bob creates MI 
   miReportCid <- submit parties.bob do 
-    exerciseCmd laServiceCid CreateMI with reporter=parties.bob; house; startingDate = today; description = "Broken chair"
+    exerciseCmd laCid CreateMI with reporter = parties.bob; house; startingDate = today; description = "Broken chair"
+
+  aaReqCid <- submit parties.bob do 
+    createCmd AvailableArbitratorsRequest with requester=parties.bob; public = parties.public
+
+  aaCid <- submit parties.public do 
+    exerciseCmd availableArbitratorsCid AddObserver with requestCid = aaReqCid; public=parties.public
 
 
   {--eventCid <- query @DateClockUpdateEvent parties.timeProvider1

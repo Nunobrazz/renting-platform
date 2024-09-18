@@ -56,37 +56,6 @@ public class LedgerCommunication {
 
   }
 
-  // everyday advance clock by 1 day and probes better to create a thread that always probes updates to evolve
-  public void advanceClock() {
-
-    System.out.printf("First in providers: %s\n",dateClock.data.providers.get(0));
-    System.out.printf("timeProviderParty: %s\n", timeProviderParty);
-    System.out.printf("length First in providers: %s\n",dateClock.data.providers.get(0).length());
-    System.out.printf("length timeProviderParty: %s\n", timeProviderParty.length());
-    System.out.printf("Verification is: %b\n", timeProviderParty.equals(dateClock.data.providers.get(0)));
-
-    //if (dateClock.data.providers.get(0).equals(timeProviderParty)) { // should i keep this if or print exception
-      
-      System.out.printf("\nAdvancing date clock one day...\n");
-            
-      var update = dateClock.id.exerciseAdvance(timeProviderParty);
-      var result = submit(client, timeProviderParty, update);    // NewClock and DateClockEvent
-      
-
-      System.out.printf("\nEvolve Cid: %s\n", evolve.id.toString());
-      System.out.printf("\nresult.exerciseResult: %s\n", result.exerciseResult);
-      
-      DateClockUpdateEvent.ContractId updatedClockcid = result.exerciseResult;
-
-      // Lifecycle payments
-      var update1 = evolve.id.exerciseProcessEvent(updatedClockcid); 
-      
-      submit(client, lifecyclerParty, update1);  // Maybe print if some payment occured
-
-   
-  }
-  
-
   public void getCurrentState() {
     dateClock = client
         .getActiveContractSetClient()
@@ -145,7 +114,36 @@ public class LedgerCommunication {
                   }
                 });
   }
+  
+  // everyday advance clock by 1 day and probes better to create a thread that always probes updates to evolve
+  public void advanceClock() {
 
+    System.out.printf("First in providers: %s\n",dateClock.data.providers.get(0));
+    System.out.printf("timeProviderParty: %s\n", timeProviderParty);
+    System.out.printf("length First in providers: %s\n",dateClock.data.providers.get(0).length());
+    System.out.printf("length timeProviderParty: %s\n", timeProviderParty.length());
+    System.out.printf("Verification is: %b\n", timeProviderParty.equals(dateClock.data.providers.get(0)));
+
+    //if (dateClock.data.providers.get(0).equals(timeProviderParty)) { // should i keep this if or print exception
+      
+      System.out.printf("\nAdvancing date clock one day...\n");
+            
+      var update = dateClock.id.exerciseAdvance(timeProviderParty);
+      var result = submit(client, timeProviderParty, update);    // NewClock and DateClockEvent
+      
+
+      System.out.printf("\nEvolve Cid: %s\n", evolve.id.toString());
+      System.out.printf("\nresult.exerciseResult: %s\n", result.exerciseResult);
+      
+      DateClockUpdateEvent.ContractId updatedClockcid = result.exerciseResult;
+
+      // Lifecycle payments
+      var update1 = evolve.id.exerciseProcessEvent(updatedClockcid); 
+      
+      submit(client, lifecyclerParty, update1);  // Maybe print if some payment occured
+
+   
+  }
   
 
 

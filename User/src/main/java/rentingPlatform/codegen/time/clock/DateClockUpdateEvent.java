@@ -44,7 +44,7 @@ import rentingPlatform.codegen.da.set.types.Set;
 import rentingPlatform.codegen.da.types.Tuple2;
 
 public final class DateClockUpdateEvent extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76", "Time.Clock", "DateClockUpdateEvent");
+  public static final Identifier TEMPLATE_ID = new Identifier("bef0965dc38d518ab3f749ea7cce7cf9cd13acb7b593b5f936707edcb2f1eff5", "Time.Clock", "DateClockUpdateEvent");
 
   public static final Choice<DateClockUpdateEvent, rentingPlatform.codegen.da.internal.template.Archive, Unit> CHOICE_Archive = 
       Choice.create("Archive", value$ -> value$.toValue(), value$ ->
@@ -65,10 +65,17 @@ public final class DateClockUpdateEvent extends Template {
 
   public final Set<String> observers;
 
-  public DateClockUpdateEvent(String creator, LocalDate eventDate, Set<String> observers) {
+  public final String operator;
+
+  public final Set<String> providers;
+
+  public DateClockUpdateEvent(String creator, LocalDate eventDate, Set<String> observers,
+      String operator, Set<String> providers) {
     this.creator = creator;
     this.eventDate = eventDate;
     this.observers = observers;
+    this.operator = operator;
+    this.providers = providers;
   }
 
   @Override
@@ -111,8 +118,8 @@ public final class DateClockUpdateEvent extends Template {
   }
 
   public static Update<Created<ContractId>> create(String creator, LocalDate eventDate,
-      Set<String> observers) {
-    return new DateClockUpdateEvent(creator, eventDate, observers).create();
+      Set<String> observers, String operator, Set<String> providers) {
+    return new DateClockUpdateEvent(creator, eventDate, observers, operator, providers).create();
   }
 
   @Override
@@ -139,10 +146,12 @@ public final class DateClockUpdateEvent extends Template {
   }
 
   public DamlRecord toValue() {
-    ArrayList<DamlRecord.Field> fields = new ArrayList<DamlRecord.Field>(3);
+    ArrayList<DamlRecord.Field> fields = new ArrayList<DamlRecord.Field>(5);
     fields.add(new DamlRecord.Field("creator", new Party(this.creator)));
     fields.add(new DamlRecord.Field("eventDate", new Date((int) this.eventDate.toEpochDay())));
     fields.add(new DamlRecord.Field("observers", this.observers.toValue(v$0 -> new Party(v$0))));
+    fields.add(new DamlRecord.Field("operator", new Party(this.operator)));
+    fields.add(new DamlRecord.Field("providers", this.providers.toValue(v$0 -> new Party(v$0))));
     return new DamlRecord(fields);
   }
 
@@ -150,25 +159,30 @@ public final class DateClockUpdateEvent extends Template {
       IllegalArgumentException {
     return value$ -> {
       Value recordValue$ = value$;
-      List<DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(3,0, recordValue$);
+      List<DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(5,0, recordValue$);
       String creator = PrimitiveValueDecoders.fromParty.decode(fields$.get(0).getValue());
       LocalDate eventDate = PrimitiveValueDecoders.fromDate.decode(fields$.get(1).getValue());
       Set<String> observers = Set.<java.lang.String>valueDecoder(PrimitiveValueDecoders.fromParty)
           .decode(fields$.get(2).getValue());
-      return new DateClockUpdateEvent(creator, eventDate, observers);
+      String operator = PrimitiveValueDecoders.fromParty.decode(fields$.get(3).getValue());
+      Set<String> providers = Set.<java.lang.String>valueDecoder(PrimitiveValueDecoders.fromParty)
+          .decode(fields$.get(4).getValue());
+      return new DateClockUpdateEvent(creator, eventDate, observers, operator, providers);
     } ;
   }
 
   public static JsonLfDecoder<DateClockUpdateEvent> jsonDecoder() {
-    return JsonLfDecoders.record(Arrays.asList("creator", "eventDate", "observers"), name -> {
+    return JsonLfDecoders.record(Arrays.asList("creator", "eventDate", "observers", "operator", "providers"), name -> {
           switch (name) {
             case "creator": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
             case "eventDate": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.date);
             case "observers": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(2, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
+            case "operator": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
+            case "providers": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(4, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
             default: return null;
           }
         }
-        , (Object[] args) -> new DateClockUpdateEvent(JsonLfDecoders.cast(args[0]), JsonLfDecoders.cast(args[1]), JsonLfDecoders.cast(args[2])));
+        , (Object[] args) -> new DateClockUpdateEvent(JsonLfDecoders.cast(args[0]), JsonLfDecoders.cast(args[1]), JsonLfDecoders.cast(args[2]), JsonLfDecoders.cast(args[3]), JsonLfDecoders.cast(args[4])));
   }
 
   public static DateClockUpdateEvent fromJson(String json) throws JsonLfDecoder.Error {
@@ -179,7 +193,9 @@ public final class DateClockUpdateEvent extends Template {
     return JsonLfEncoders.record(
         JsonLfEncoders.Field.of("creator", apply(JsonLfEncoders::party, creator)),
         JsonLfEncoders.Field.of("eventDate", apply(JsonLfEncoders::date, eventDate)),
-        JsonLfEncoders.Field.of("observers", apply(_x0 -> _x0.jsonEncoder(JsonLfEncoders::party), observers)));
+        JsonLfEncoders.Field.of("observers", apply(_x0 -> _x0.jsonEncoder(JsonLfEncoders::party), observers)),
+        JsonLfEncoders.Field.of("operator", apply(JsonLfEncoders::party, operator)),
+        JsonLfEncoders.Field.of("providers", apply(_x0 -> _x0.jsonEncoder(JsonLfEncoders::party), providers)));
   }
 
   public static ContractFilter<Contract> contractFilter() {
@@ -200,18 +216,21 @@ public final class DateClockUpdateEvent extends Template {
     DateClockUpdateEvent other = (DateClockUpdateEvent) object;
     return Objects.equals(this.creator, other.creator) &&
         Objects.equals(this.eventDate, other.eventDate) &&
-        Objects.equals(this.observers, other.observers);
+        Objects.equals(this.observers, other.observers) &&
+        Objects.equals(this.operator, other.operator) &&
+        Objects.equals(this.providers, other.providers);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.creator, this.eventDate, this.observers);
+    return Objects.hash(this.creator, this.eventDate, this.observers, this.operator,
+        this.providers);
   }
 
   @Override
   public String toString() {
-    return String.format("rentingPlatform.codegen.time.clock.DateClockUpdateEvent(%s, %s, %s)",
-        this.creator, this.eventDate, this.observers);
+    return String.format("rentingPlatform.codegen.time.clock.DateClockUpdateEvent(%s, %s, %s, %s, %s)",
+        this.creator, this.eventDate, this.observers, this.operator, this.providers);
   }
 
   /**

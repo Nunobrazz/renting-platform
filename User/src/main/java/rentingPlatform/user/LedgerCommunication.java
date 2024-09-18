@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 import static java.util.UUID.randomUUID;
 
-
+import java.rmi.dgc.Lease;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -18,11 +18,11 @@ import com.daml.ledger.javaapi.data.*;
 import com.daml.ledger.javaapi.data.codegen.Update;
 import com.daml.ledger.rxjava.DamlLedgerClient;
 
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.InviteArbitrators;
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.MIReport;
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.AvailableArbitrators;
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.AvailableArbitratorsRequest;
-import rentingPlatform.codegen.platform.leaseagreement.service.Service;
+import rentingPlatform.codegen.platform.modelmi.InviteArbitrators;
+import rentingPlatform.codegen.platform.modelmi.MIReport;
+import rentingPlatform.codegen.platform.modelmi.AvailableArbitrators;
+import rentingPlatform.codegen.platform.modelmi.AvailableArbitratorsRequest;
+import rentingPlatform.codegen.platform.modella.LeaseAgreement;
 import rentingPlatform.codegen.time.lifecycle.iou.Iou;
 
 
@@ -35,17 +35,18 @@ public class LedgerCommunication {
     public DamlLedgerClient client;
     
     public static final AtomicReference<LedgerOffset> acsOffset = new AtomicReference<>(LedgerOffset.LedgerBegin.getInstance()); 
-    public AtomicLong servicesIdCounter = new AtomicLong(0); 
+    public AtomicLong lasIdCounter = new AtomicLong(0); 
     public AtomicLong miReportsIdCounter = new AtomicLong(0); 
 
-    ConcurrentHashMap<Long, Service> laServices = new ConcurrentHashMap<>();
-    BiMap<Long, Service.ContractId> laServiceCids = Maps.synchronizedBiMap(HashBiMap.create());
+    ConcurrentHashMap<Long, LeaseAgreement> las = new ConcurrentHashMap<>();
+    BiMap<Long, LeaseAgreement.ContractId> lasCids = Maps.synchronizedBiMap(HashBiMap.create());
     
     ConcurrentHashMap<Long, MIReport> miReports = new ConcurrentHashMap<>();
     BiMap<Long, MIReport.ContractId> miReportCids = Maps.synchronizedBiMap(HashBiMap.create());
     
-    ConcurrentHashMap<Long, InviteArbitrators> inviteArbitrators = new ConcurrentHashMap<>();
-    BiMap<Long, InviteArbitrators.ContractId> inviteArbitratorsCids = Maps.synchronizedBiMap(HashBiMap.create());
+    // Inutil pq so faz probe para quando estiver cheio
+    //ConcurrentHashMap<Long, InviteArbitrators> inviteArbitrators = new ConcurrentHashMap<>(); 
+    //BiMap<Long, InviteArbitrators.ContractId> inviteArbitratorsCids = Maps.synchronizedBiMap(HashBiMap.create());
     
     AvailableArbitrators.Contract availableArbitrators;
     
@@ -64,63 +65,43 @@ public class LedgerCommunication {
 
       io = new IO();
 
-      getServicesCurrentState();
+      getLAsCurrentState();
       getMIReportsCurrentState();
-      getAvailableArbitratorsCurrentState();
       probeMIReports();
-      probeIOU();
+      getAvailableArbitratorsCurrentState();
+      getInviteArbitratorsCurrentState();
       probeInviteArbitrators();
+      probeIOU();
       probeAvailableArbitrators();
+
     }
 
     public ConcurrentHashMap<Long, MIReport> getMIs(){
       return miReports;
     }
-    public ConcurrentHashMap<Long, Service> getLAServices(){
-      return laServices;
-    }
-    public ConcurrentHashMap<Long, InviteArbitrators> getInviteArbitrators(){
-      return inviteArbitrators;
+    public ConcurrentHashMap<Long, LeaseAgreement> getLAs(){
+      return las;
     }
     public AvailableArbitrators.Contract getAvailableArbitrators(){
       return availableArbitrators;
     }
     private void setAtomicId(){
-      
       //todo
     }
 
-    public void invokeArbitrators(long serviceId, long miReportId){
-      if (miReports.get(miReportId).activeInvitation){
-        System.out.println("There is an Active Invitation Process.");
-        return;
-      }
-      // create AvailableArbitratorsRequest 
-      var aaCreate = AvailableArbitratorsRequest.create(publicParty, individualParty);
-      var aaReqContractId = submit(client, individualParty, aaCreate).contractId;
-      // AvailableArbitrators add observer with public 
-      var addObserverUpdate = availableArbitrators.id.exerciseAddObserver(aaReqContractId, publicParty);
-      var privAvailableArbitratorsCid = submit(client, publicParty, addObserverUpdate).exerciseResult;
-      // Invoke Arbitrators with serviceId 
-      var invokeArbitratorsUpdate = laServiceCids.get(serviceId).exerciseInvokeArbitrators(individualParty, privAvailableArbitratorsCid, miReportCids.get(miReportId));      
-      submit(client, individualParty, invokeArbitratorsUpdate);
-      System.out.println("\nArbitrators have been Invited.");
-    }
-
-
-    private void getServicesCurrentState(){
+    private void getLAsCurrentState(){
       client
       .getActiveContractSetClient()
-      .getActiveContracts(Service.contractFilter(), Collections.singleton(individualParty), true)
+      .getActiveContracts(LeaseAgreement.contractFilter(), Collections.singleton(individualParty), true)
       .blockingForEach(
           response -> {
             response.offset.ifPresent(offset -> acsOffset.set(new LedgerOffset.Absolute(offset)));
             response.activeContracts.forEach(
                 contract -> {
-                  long id = servicesIdCounter.getAndIncrement();
-                  laServices.put(id, contract.data);
-                  laServiceCids.put(id, contract.id);
-                  System.out.printf("You are enrolled in one LA.\n");
+                  long id = lasIdCounter.getAndIncrement();
+                  las.put(id, contract.data);
+                  lasCids.put(id, contract.id);
+                  System.out.printf("You have a stake in a LA.\n");
                 });
           });
     }
@@ -138,6 +119,23 @@ public class LedgerCommunication {
                   miReportCids.put(id, contract.id);
                 });
           });
+    }
+    private void getInviteArbitratorsCurrentState(){
+      client
+      .getActiveContractSetClient()
+      .getActiveContracts(InviteArbitrators.contractFilter(), Collections.singleton(individualParty), true)
+      .blockingForEach(
+        response -> {
+          response.offset.ifPresent(offset -> acsOffset.set(new LedgerOffset.Absolute(offset)));
+          response.activeContracts.forEach(
+              contract -> {
+                if (contract.data.confirmed.map.size() == contract.data.miDetails.nArbitrators){
+                  var confirmAttributionUpdate = contract.id.exerciseConfirmAttribution(individualParty);
+                  submit(client, individualParty, confirmAttributionUpdate);
+                  System.out.println("Invitation Finalized.");
+                }
+              });
+        });
     }
     private void getAvailableArbitratorsCurrentState(){
       client
@@ -233,6 +231,23 @@ public class LedgerCommunication {
                     System.out.printf("Update in available arbitrators.\n");                    
                   }  }
                 }); 
+    }
+
+    public void invokeArbitrators(long laId, long miReportId){
+      if (miReports.get(miReportId).activeInvitation){
+        System.out.println("There is an Active Invitation Process.");
+        return;
+      }
+      // create AvailableArbitratorsRequest 
+      var aaCreate = AvailableArbitratorsRequest.create(publicParty, individualParty);
+      var aaReqContractId = submit(client, individualParty, aaCreate).contractId;
+      // AvailableArbitrators add observer with public 
+      var addObserverUpdate = availableArbitrators.id.exerciseAddObserver(aaReqContractId, publicParty);
+      var privAvailableArbitratorsCid = submit(client, publicParty, addObserverUpdate).exerciseResult;
+      // Invoke Arbitrators with laId 
+      var invokeArbitratorsUpdate = lasCids.get(laId).exerciseInvokeArbitrators(individualParty, privAvailableArbitratorsCid, miReportCids.get(miReportId));      
+      submit(client, individualParty, invokeArbitratorsUpdate);
+      System.out.println("\nArbitrators have been Invited.");
     }
 
 

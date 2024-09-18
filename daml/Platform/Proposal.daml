@@ -1,26 +1,25 @@
 module Platform.Proposal where
 
-import DA.List
 import Platform.Types.Common as Types (House, LeaseTerms) 
-import Platform.Service
+import Platform.Types.LA
+import Platform.ModelLA
 import Time.Lifecycle.Evolve
 
 
-template Proposal -- do decent  accept pattern
+
+template Proposal 
   with
     tenant : Party
     house : House
-    leaseTerms : LeaseTerms
+    leaseTerms : LeaseTerms 
+    operator : Party
   where
-    signatory  tenant 
+    signatory tenant 
     observer house.host
     ensure house.host /= tenant
 
-    -- Should be only Proposer signing because host signis when he accepts the proposal
-    -- Coded like this for the case we want to add a new signer
-    choice Accept : ContractId Request 
-      with
-          operator : Party -- more efficient if operator is in the Accept choice
+    choice Accept : ContractId LACreationRequest 
+                            -- operator cannot be here because the tenant cannot confirm that the operator party is valid
       controller house.host
         do
           create LACreationRequest with operator; tenant; house; leaseTerms
@@ -61,7 +60,7 @@ template LACreationRequest
         (_, Evolve{lifecycler}) <- fetchByKey (operator, evolveId)
 
         exerciseByKey @Evolve (operator, evolveId) AddLA with laKey -- necessary operator
-        create LeaseAgreement with operator; lifecycler; tenant; house; leaseTerms; paymentsToProcess=leaseTerms.paymentDates
+        create LeaseAgreement with operator; lifecycler; tenant;laKey; house; leaseTerms; paymentsToProcess=leaseTerms.paymentDates
 
 
 

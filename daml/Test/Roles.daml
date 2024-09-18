@@ -27,9 +27,9 @@ data Parties = Parties
 init : Script (Parties, House, LeaseTerms, Date)
 init = script do 
 
-    alice <- allocatePartyWithHint "Alice" (PartyIdHint "Alice")              
+    alice <- allocatePartyWithHint "Host" (PartyIdHint "Host")              
     operator <- allocatePartyWithHint "Operator" (PartyIdHint "Operator")              
-    bob <- allocatePartyWithHint "Bob" (PartyIdHint "Bob")                       
+    bob <- allocatePartyWithHint "Tenant" (PartyIdHint "Tenant")                       
     admin <- allocatePartyWithHint "Admin" (PartyIdHint "Admin")                 
   
     timeProvider1 <- allocatePartyWithHint "TimeProvider1" (PartyIdHint "TimeProvider1")  
@@ -43,7 +43,7 @@ init = script do
     
     public <- allocatePartyWithHint "Public" (PartyIdHint "Public")    
 
-    let house = House with host=alice; address = "Palermo Soho"; details = "This is a nice house"; listedRent=100 -- bug in listed house
+    let house = House with host=alice; address = "Palermo Soho, Uriarte 1474"; details = "This is a nice house"; listedRent=100 -- bug in listed house
         leaseTerms = LeaseTerms with agreedRent=100; beginingDate = date 2024 Jan 2; paymentDates=[date 2024 Jun 24, date 2024 Jul 1, date 2024 Aug 1]; nArbitrators = 2
         parties = Parties with alice; bob; operator; admin; timeProvider1; timeProvider2; lifecycler; timeProvider3; arbitrator1; arbitrator2; arbitrator3; public
         today = date 2024 Jun 21
@@ -54,9 +54,9 @@ init = script do
       createCmd Evolve with operator; lifecycler; laKeys = S.empty; id="1"
     
     dateClockUpdateEventCid <- submit operator do
-      createCmd DateClockUpdateEvent with creator=operator; eventDate=today; observers=S.fromList [parties.public, timeProvider1, timeProvider2, parties.lifecycler]; operator; providers=[operator]
+      createCmd DateClockUpdateEvent with creator=operator; eventDate=today; observers=S.fromList [parties.public, timeProvider1, timeProvider2, parties.lifecycler]; operator; providers = S.fromList [operator]
     dateClockCid <- submit operator do
-      createCmd DateClock with operator; providers=[]; clockDate=today; creator=operator; waitingAccept = S.fromList [timeProvider1, timeProvider2]
+      createCmd DateClock with operator; providers=S.empty; clockDate=today; creator=operator; waitingAccept = S.fromList [timeProvider1, timeProvider2]
     dateClockCid <- submit timeProvider1 do
       exerciseCmd dateClockCid Accept with provider = timeProvider1
     dateClockCid <- submit timeProvider2 do

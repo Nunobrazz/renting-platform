@@ -18,11 +18,11 @@ import com.daml.ledger.javaapi.data.*;
 import com.daml.ledger.javaapi.data.codegen.Update;
 import com.daml.ledger.rxjava.DamlLedgerClient;
 
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.InviteArbitrators;
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.MIReport;
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.Poll;
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.CreatePoll;
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.Vote;
+import rentingPlatform.codegen.platform.modelmi.InviteArbitrators;
+import rentingPlatform.codegen.platform.modelmi.MIReport;
+import rentingPlatform.codegen.platform.modelmi.Poll;
+import rentingPlatform.codegen.platform.modelmi.CreatePoll;
+import rentingPlatform.codegen.platform.modelmi.Vote;
 import rentingPlatform.codegen.platform.types.mi.Responsability;
 
 
@@ -45,7 +45,7 @@ public class LedgerCommunication {
     BiMap<Long, InviteArbitrators.ContractId> invitationCids = Maps.synchronizedBiMap(HashBiMap.create());
     
     // Once arbitrators can see them can only be archived to create a Poll
-    ConcurrentHashMap<Long, MIReport> miReports = new ConcurrentHashMap<>(); // one for the assingned and one for the unnassigned
+    ConcurrentHashMap<Long, MIReport> miReports = new ConcurrentHashMap<>(); 
     BiMap<Long, MIReport.ContractId> miReportCids = Maps.synchronizedBiMap(HashBiMap.create());
     
     ConcurrentHashMap<Long, Poll> polls = new ConcurrentHashMap<>();
@@ -148,7 +148,8 @@ public class LedgerCommunication {
                     CreatedEvent createdEvent = (CreatedEvent) event;
                     long id = invitationsIdCounter.getAndIncrement();
                     InviteArbitrators.Contract contract = InviteArbitrators.Contract.fromCreatedEvent(createdEvent);
-                    if (contract.data.miDetails.nArbitrators > contract.data.confirmed.map.size() && !contract.data.confirmed.map.containsKey(individualParty)){   // Incomplete invitations only without himself
+                    // Incomplete invitations only without himself (verify containsKey in archived contracts)
+                    if (contract.data.miDetails.nArbitrators > contract.data.confirmed.map.size() && !contract.data.confirmed.map.containsKey(individualParty)){   
                       invitations.put(id, contract.data);
                       invitationCids.put(id, contract.id);
                       System.out.printf("\nNew invitation update.\n"); //debug
@@ -160,13 +161,10 @@ public class LedgerCommunication {
                       long id = invitationCids.inverse().get(archivedContract);
                       invitations.remove(id);
                       invitationCids.remove(id);
-                      System.out.printf("\nOne invitation was terminated.\n"); //debug
                     }
-
-
                   }
                 }
-                });
+              });
     }
 
     private void probeMIReports(){
@@ -185,14 +183,14 @@ public class LedgerCommunication {
                     miReports.put(id, contract.data);
                     miReportCids.put(id, contract.id);
                     System.out.printf("You have been added to a new MI!\n");
-                  } else if (event instanceof ArchivedEvent) {
+                  } 
+                  else if (event instanceof ArchivedEvent) {
                     ArchivedEvent archivedEvent = (ArchivedEvent) event; 
                     MIReport.ContractId archivedContract = new MIReport.ContractId(archivedEvent.getContractId());
                     if (miReportCids.inverse().containsKey(archivedContract)){
                       long id = miReportCids.inverse().get(archivedContract);
                       miReports.remove(id);
                       miReportCids.remove(id);
-                      System.out.printf("One Poll was created!\n"); 
                     }
                   }
                 }
@@ -214,14 +212,12 @@ public class LedgerCommunication {
                     long id = pollsIdCounter.getAndIncrement();
                     polls.put(id, contract.data);
                     pollCids.put(id, contract.id);
-                    System.out.printf("One Poll has been created!\n");
                   } else if (event instanceof ArchivedEvent) {
                     ArchivedEvent archivedEvent = (ArchivedEvent) event; 
                     long id =
                           pollCids.inverse().get(new Poll.ContractId(archivedEvent.getContractId()));
                     polls.remove(id);
                     pollCids.remove(id);
-                    System.out.printf("One Poll has been terminated.\n");
                   }
                 }
               });
@@ -230,26 +226,25 @@ public class LedgerCommunication {
     public void acceptInvitation(long invitationId){
       var update = invitationCids.get(invitationId).exerciseAccept(individualParty);
       submit(client, individualParty, update);   
-      System.out.printf("Waiting for end of invitation process.");  
+      System.out.printf("Waiting for the end of the Invitation process.");  
     }
 
 
     public void createPoll(CreatePoll createPoll, long miReportId){
       var update = miReportCids.get(miReportId).exerciseCreatePoll(createPoll);
       submit(client, individualParty, update);   
-
     }
     
     public void submitVote(Vote vote, long pollId){
       if (polls.get(pollId).alreadyVoted.map.containsKey(individualParty)){
         System.out.println("\nYou already participated in this Poll.");
       }
-      if (polls.get(pollId).alreadyVoted.map.size() + 1 == polls.get(pollId).miDetails.nArbitrators){
+      else if (polls.get(pollId).alreadyVoted.map.size() + 1 == polls.get(pollId).miDetails.nArbitrators){
         
         var update = pollCids.get(pollId).exerciseVote(vote);
         var res = submit(client, individualParty, update).exerciseResult;  
         System.out.printf("Vote submitted sucessfully.\n");
-        var finalize = new Poll.ContractId(res.contractId).exerciseFinalizeVotation(individualParty);
+        var finalize = new Poll.ContractId(res.contractId).exerciseFinalizePoll(individualParty);
         submit(client, individualParty, finalize);
       }
       else{

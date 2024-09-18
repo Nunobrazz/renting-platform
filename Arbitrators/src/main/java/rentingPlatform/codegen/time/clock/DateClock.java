@@ -6,7 +6,6 @@ import com.daml.ledger.javaapi.data.ContractFilter;
 import com.daml.ledger.javaapi.data.CreateAndExerciseCommand;
 import com.daml.ledger.javaapi.data.CreateCommand;
 import com.daml.ledger.javaapi.data.CreatedEvent;
-import com.daml.ledger.javaapi.data.DamlCollectors;
 import com.daml.ledger.javaapi.data.DamlRecord;
 import com.daml.ledger.javaapi.data.Date;
 import com.daml.ledger.javaapi.data.ExerciseCommand;
@@ -42,7 +41,7 @@ import java.util.Optional;
 import rentingPlatform.codegen.da.set.types.Set;
 
 public final class DateClock extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("a6bcfd7383b67eb87e5f0a5348ee1cec07394d6ff60d842a59c6ec0bfb5dfc76", "Time.Clock", "DateClock");
+  public static final Identifier TEMPLATE_ID = new Identifier("bef0965dc38d518ab3f749ea7cce7cf9cd13acb7b593b5f936707edcb2f1eff5", "Time.Clock", "DateClock");
 
   public static final Choice<DateClock, Advance, DateClockUpdateEvent.ContractId> CHOICE_Advance = 
       Choice.create("Advance", value$ -> value$.toValue(), value$ -> Advance.valueDecoder()
@@ -66,7 +65,7 @@ public final class DateClock extends Template {
 
   public final String operator;
 
-  public final List<String> providers;
+  public final Set<String> providers;
 
   public final LocalDate clockDate;
 
@@ -74,7 +73,7 @@ public final class DateClock extends Template {
 
   public final Set<String> waitingAccept;
 
-  public DateClock(String operator, List<String> providers, LocalDate clockDate, String creator,
+  public DateClock(String operator, Set<String> providers, LocalDate clockDate, String creator,
       Set<String> waitingAccept) {
     this.operator = operator;
     this.providers = providers;
@@ -138,7 +137,7 @@ public final class DateClock extends Template {
     return createAndExerciseArchive(new rentingPlatform.codegen.da.internal.template.Archive());
   }
 
-  public static Update<Created<ContractId>> create(String operator, List<String> providers,
+  public static Update<Created<ContractId>> create(String operator, Set<String> providers,
       LocalDate clockDate, String creator, Set<String> waitingAccept) {
     return new DateClock(operator, providers, clockDate, creator, waitingAccept).create();
   }
@@ -168,7 +167,7 @@ public final class DateClock extends Template {
   public DamlRecord toValue() {
     ArrayList<DamlRecord.Field> fields = new ArrayList<DamlRecord.Field>(5);
     fields.add(new DamlRecord.Field("operator", new Party(this.operator)));
-    fields.add(new DamlRecord.Field("providers", this.providers.stream().collect(DamlCollectors.toDamlList(v$0 -> new Party(v$0)))));
+    fields.add(new DamlRecord.Field("providers", this.providers.toValue(v$0 -> new Party(v$0))));
     fields.add(new DamlRecord.Field("clockDate", new Date((int) this.clockDate.toEpochDay())));
     fields.add(new DamlRecord.Field("creator", new Party(this.creator)));
     fields.add(new DamlRecord.Field("waitingAccept", this.waitingAccept.toValue(v$0 -> new Party(v$0))));
@@ -180,7 +179,7 @@ public final class DateClock extends Template {
       Value recordValue$ = value$;
       List<DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(5,0, recordValue$);
       String operator = PrimitiveValueDecoders.fromParty.decode(fields$.get(0).getValue());
-      List<String> providers = PrimitiveValueDecoders.fromList(PrimitiveValueDecoders.fromParty)
+      Set<String> providers = Set.<java.lang.String>valueDecoder(PrimitiveValueDecoders.fromParty)
           .decode(fields$.get(1).getValue());
       LocalDate clockDate = PrimitiveValueDecoders.fromDate.decode(fields$.get(2).getValue());
       String creator = PrimitiveValueDecoders.fromParty.decode(fields$.get(3).getValue());
@@ -195,7 +194,7 @@ public final class DateClock extends Template {
     return JsonLfDecoders.record(Arrays.asList("operator", "providers", "clockDate", "creator", "waitingAccept"), name -> {
           switch (name) {
             case "operator": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
-            case "providers": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.list(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
+            case "providers": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(1, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
             case "clockDate": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(2, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.date);
             case "creator": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(3, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
             case "waitingAccept": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(4, rentingPlatform.codegen.da.set.types.Set.jsonDecoder(com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party));
@@ -212,7 +211,7 @@ public final class DateClock extends Template {
   public JsonLfEncoder jsonEncoder() {
     return JsonLfEncoders.record(
         JsonLfEncoders.Field.of("operator", apply(JsonLfEncoders::party, operator)),
-        JsonLfEncoders.Field.of("providers", apply(JsonLfEncoders.list(JsonLfEncoders::party), providers)),
+        JsonLfEncoders.Field.of("providers", apply(_x0 -> _x0.jsonEncoder(JsonLfEncoders::party), providers)),
         JsonLfEncoders.Field.of("clockDate", apply(JsonLfEncoders::date, clockDate)),
         JsonLfEncoders.Field.of("creator", apply(JsonLfEncoders::party, creator)),
         JsonLfEncoders.Field.of("waitingAccept", apply(_x0 -> _x0.jsonEncoder(JsonLfEncoders::party), waitingAccept)));

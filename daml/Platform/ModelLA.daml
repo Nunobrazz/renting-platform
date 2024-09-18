@@ -18,12 +18,13 @@ template LeaseAgreement
     tenant : Party         
     house : House 
     leaseTerms : LeaseTerms
-    paymentsToProcess : [Date] 
+    paymentsToProcess : [Date]
+    laKey : LAkey 
   where
     signatory operator, tenant, house.host   
     observer lifecycler
     ensure (not (leaseTerms.paymentDates /= [] && leaseTerms.beginingDate >= head leaseTerms.paymentDates)) && leaseTerms.nArbitrators > 0
-    key LAkey with tenant, house : (LAkey)
+    key laKey : (LAkey) --LAkey with tenant, house : (LAkey)
     maintainer key.tenant, key.house.host
 
 
@@ -43,11 +44,9 @@ template LeaseAgreement
                 create Iou with creator=lifecycler; debtor=tenant; owner=house.host, amount=leaseTerms.agreedRent, paymentDate = payment; creationDate=eventDate
               )
             archive self
-            create LeaseAgreement with operator;lifecycler;tenant;house;leaseTerms; paymentsToProcess = newPaymentsToProcess
+            create LeaseAgreement with operator;lifecycler;tenant;house;laKey;leaseTerms; paymentsToProcess = newPaymentsToProcess
         else do 
           pure self
-
-
 
       ---- BEGIN ---- MAINTENANCE ISSUES
     nonconsuming choice CreateMI : ContractId MIReport
@@ -57,15 +56,13 @@ template LeaseAgreement
         description : Text
         startingDate : Date --put today date
       controller reporter
-      do
-
-        assertMsg ("Creating the MI the reporter is neither tenant nor host.") (reporter == tenant || reporter == house.host)
-         
+      do         
+        assertMsg ("The party creating the MI must be the Tenant or the Host") (reporter==tenant || reporter==house.host)
         let miDetails = MIdetails with nArbitrators = leaseTerms.nArbitrators; house; startingDate; description
 
-        create MIReport with tenant; host = house.host; miDetails; arbitrators = S.empty; activeInvitation=False
+        create MIReport with tenant; host = house.host; laKey; miDetails; arbitrators = S.empty; activeInvitation=False
 
-    nonconsuming choice SubmitAssessment : ContractId Assessment
+    nonconsuming choice SubmitAssessment : ContractId AmicableAssessment -- Useless because the operator doesnt have to sign it 
       with 
         creator : Party
         assessment : AssessmentDetails
@@ -73,19 +70,19 @@ template LeaseAgreement
       controller creator
       do
         MIReport{miDetails, arbitrators} <- fetch miReportCid -- can only create assessment if it hasn't already invoked arbitrators
-        --assertMsg "Cannot Submit Assessment because arbitrators where already invoked." (arbitrators /= null)
+        --assertMsg "Cannot Submit Assessment because arbitrators where already invoked." (arbitrators /= none)
         if creator == tenant then
-          create Assessment with creator=tenant; signer=house.host; miDetails; assessment; miReportCid
+          create AmicableAssessment with creator=tenant; counterpart=house.host; miDetails; assessment
         else 
-          create Assessment with creator=house.host; signer=tenant; miDetails; assessment; miReportCid
+          create AmicableAssessment with creator=house.host; counterpart=tenant; miDetails; assessment
 
-    nonconsuming choice AcceptAssessment : ContractId MIresultFriendly
+    nonconsuming choice AcceptAssessment : ContractId MIresultAmicable -- Useless because the operator doesnt have to sign it 
       with 
         signer : Party 
-        assessmentCid : ContractId Assessment
+        assessmentCid : ContractId AmicableAssessment
       controller signer
       do
-        exercise assessmentCid SignAssessment with signer
+        exercise assessmentCid SignAssessment
 
     nonconsuming choice InvokeArbitrators : ContractId InviteArbitrators 
       with
@@ -94,10 +91,12 @@ template LeaseAgreement
         miReportCid : ContractId MIReport
       controller inviter
       do
+        
         MIReport{tenant, host, miDetails, arbitrators, activeInvitation} <- fetchAndArchive miReportCid
         assertMsg "There is already an active Invitation." (not activeInvitation)
-        miReportCid <- create MIReport with tenant; host; miDetails; arbitrators; activeInvitation=True
-        AvailableArbitrators{arbitrators} <- fetchAndArchive availableArbitratorsCid -- archived by operator
+        miReportCid <- create MIReport with tenant; host; laKey; miDetails; arbitrators; activeInvitation=True
+        AvailableArbitrators{arbitrators, operator} <- fetchAndArchive availableArbitratorsCid -- archived by operator
+        assertMsg "Wrong operator signed the AvailableArbitrators contract." (operator /= tenant && operator /= house.host)
         inviteArbitratorsCid <- create InviteArbitrators with tenant; host; invited=arbitrators; confirmed = S.empty; miDetails; miReportCid -- recently created miReport
         pure inviteArbitratorsCid
 

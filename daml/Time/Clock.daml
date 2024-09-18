@@ -3,7 +3,6 @@ module Time.Clock where
 
 import DA.Date
 import Types.Common (Parties)
-import DA.List qualified as L
 import DA.Set qualified as S
 
 
@@ -19,7 +18,7 @@ template DateClockUpdateEvent
       -- ^ The clock's observers.
     operator : Party -- The operator act as signatory to not allow the creation of a DateClockUpdateEvent by a single party.
 
-    providers: [Party]
+    providers: Parties
   where
     signatory creator, operator, providers -- Maybe remove creator from here no? in the document i didnt put it
     observer observers  
@@ -31,7 +30,7 @@ template DateClockUpdateEvent
 template DateClock
   with
     operator : Party
-    providers : [Party]
+    providers : Parties
     clockDate : Date
     creator : Party
     waitingAccept : Parties
@@ -43,7 +42,7 @@ template DateClock
       with
         provider : Party
       controller provider
-      do create this with providers = provider :: providers; waitingAccept = S.delete provider waitingAccept 
+      do create this with providers = S.insert provider providers; waitingAccept = S.delete provider waitingAccept 
  
     nonconsuming choice Advance : ContractId DateClockUpdateEvent
         -- ^ Advance time to its next state.

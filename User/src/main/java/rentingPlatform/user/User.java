@@ -1,6 +1,6 @@
 package rentingPlatform.user;
 
-
+import java.util.InputMismatchException;
 
 public class User {
   
@@ -26,8 +26,9 @@ public class User {
     try{
       ledger = new LedgerCommunication(ledgerhost, ledgerApiPort, individualParty, publicParty);
       io.displayMainMenu(ledger);
-    }catch(Exception e){
-      e.printStackTrace();
+    }catch(InputMismatchException e){
+      System.err.println("Error parsing input going back to Main Menu");
+      io.displayMainMenu(ledger);
     }
   }
 

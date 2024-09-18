@@ -1,5 +1,5 @@
 module Platform.Service where
-
+{--
 import qualified DA.Set as S
 import Platform.Util
 import Platform.Types.Common 
@@ -105,7 +105,7 @@ template Request
         create Service with operator; tenant; host=house.host; laKey = LAkey with tenant; house
 
 
-
+--}
 
 
 

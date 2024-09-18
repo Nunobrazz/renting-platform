@@ -4,12 +4,14 @@ import DA.Set qualified as S
 import Types.Common
 import Platform.Types.MI 
 import Platform.Util
+import Platform.Types.LA 
 
 template MIReport 
   with
     tenant : Party
     host : Party
-    miDetails: MIdetails -- nabritrators bigger then 0
+    laKey : LAkey
+    miDetails: MIdetails 
     arbitrators : Parties
     activeInvitation : Bool
   where
@@ -23,12 +25,16 @@ template MIReport
     choice SetArbitrators : ContractId MIReport
       with 
         inviter : Party
-        arbitrators : Parties
+        inviteArbitratorsCid : ContractId InviteArbitrators
       controller inviter
       do 
-        create this with arbitrators 
-    
-    choice CreatePoll : ContractId Poll -- how do i assure only one Poll can be created per mi By archiving this MI
+        InviteArbitrators{confirmed, miReportCid} <- fetch inviteArbitratorsCid -- ensures that the arbitrators set are from an invitation
+        assertMsg "Setting arbitrators with wrong InviteArbitrators ContractId." (miReportCid == self)
+        miReportCid <- create this with arbitrators=confirmed
+        exercise inviteArbitratorsCid Finish          -- if this is not done here the fetch will fail 
+        pure miReportCid
+
+    choice CreatePoll : ContractId Poll -- how do i assure only one Poll can be created per mi By archiving this MI after the Poll
       with 
         visitor : Party
         visitDetails : Text
@@ -38,6 +44,7 @@ template MIReport
         reparationDate : Date
       controller visitor
       do           
+        assertMsg "The visitor must be in the arbitrators assigned to this MIReport." (S.member visitor arbitrators)
         create Poll with tenant, host, miDetails; visitor; visitDetails; voters=arbitrators; assessmentDate;reparationDate;cost; alreadyVoted = S.fromList [visitor]; votes = [vote] --miReportCid=self; 
 
 
@@ -48,7 +55,7 @@ template InviteArbitrators     -- arbitrators recieve notifications when others 
     host : Party 
     invited : Parties          -- Universal arbitrator party doesnt work because if n ot any party could enroll other arbitrators
     confirmed : Parties
-    miDetails : MIdetails
+    miDetails : MIdetails      -- More effiecient avoids fetch  
     miReportCid : ContractId MIReport
   where
     signatory tenant, host, confirmed -- inviter can create this inviting whoever he wants only if host signs too
@@ -64,13 +71,18 @@ template InviteArbitrators     -- arbitrators recieve notifications when others 
 
         create this with confirmed = S.insert arbitrator confirmed; invited = S.delete arbitrator invited -- delete from invited
     
-    choice ConfirmAttribution : ContractId MIReport
+    choice Finish : () -- arbitrators authorize tenant and host to archive the contract
+      controller tenant, host
+      do 
+        assertMsg "The expected number of arbitrators has not been reached." (S.size confirmed == miDetails.nArbitrators)
+
+    nonconsuming choice ConfirmAttribution : ContractId MIReport
       with 
         inviter : Party
       controller inviter
       do
         assertMsg "The expected number of arbitrators has not been reached." (S.size confirmed == miDetails.nArbitrators)
-        exercise miReportCid SetArbitrators with inviter; arbitrators=confirmed
+        exercise miReportCid SetArbitrators with inviter; inviteArbitratorsCid=self -- this will fail if inviter is not tenant or host
 
 
 
@@ -92,53 +104,56 @@ template Poll
     signatory alreadyVoted, tenant, host -- Both MI parts agree with the votation
     observer  voters
     ensure (S.size voters == miDetails.nArbitrators)
+
     choice Vote : ContractId Poll 
       with
         voter : Party
         vote : Responsability
       controller voter
         do
-          assertMsg "This party is not allowd to submit a vote." (S.member voter (toVote this)) 
-          create Poll with tenant; host; miDetails; visitor; visitDetails; voters;assessmentDate;reparationDate; cost; alreadyVoted = S.insert voter voters; votes=vote :: votes --miReportCid
+          assertMsg "This party is not allowd to submit a vote." (S.member voter (pending this)) 
+          create Poll with tenant; host; miDetails; visitor; visitDetails; voters; assessmentDate; reparationDate; cost; alreadyVoted = S.insert voter voters; votes=vote :: votes --miReportCid
 
-    choice FinalizeVotation : ContractId MIresultArbitrators
+    choice FinalizePoll : ContractId MIresultArbitration
       with 
         finalizer : Party
       controller finalizer
       do
-        assertMsg "Tried to finalize votation with out all votes completed." (alreadyVoted==voters)
+        assertMsg "Tried to finalize poll without all votes completed." (alreadyVoted==voters)
         let 
           responsability = doVotesMean votes 
           assessment = AssessmentDetails with responsability; cost; assessmentDate; reparationDate 
         
-        create MIresultArbitrators with tenant; host; miDetails; arbitrators=voters; visitor; visitDetails; assessment
+        create MIresultArbitration with tenant; host; miDetails; arbitrators=voters; visitor; visitDetails; assessment
 
 
-toVote : Poll -> Parties
-toVote Poll {alreadyVoted, voters} = S.difference voters alreadyVoted
+pending : Poll -> Parties
+pending Poll {alreadyVoted, voters} = S.difference voters alreadyVoted
 
 
-template Assessment
+template AmicableAssessment -- passar pro service 
   with 
     creator :  Party
-    signer : Party
+    counterpart : Party
     assessment : AssessmentDetails
     miDetails : MIdetails
-    miReportCid : ContractId MIReport
   where 
     signatory creator
-    observer  signer
-    --ensure creator /= signer && (((signer == tenant || signer == host) && (creator == tenant || creator == host)))
-    choice SignAssessment : ContractId MIresultFriendly 
-      with
-        signer : Party
-      controller signer
+    observer  counterpart
+
+    --ensure creator /= counterpart && (((counterpart == tenant || counterpart == host) && (creator == tenant || creator == host)))
+    choice SignAssessment : ContractId MIresultAmicable 
+      controller counterpart
         do          
-          create MIresultFriendly with assessmentCreator=creator; assessmentSigner=signer; miDetails; assessment
-          -- verifcar creator e singer para nao ser o mesmo
+          create MIresultAmicable with assessmentCreator=creator; assessmentSigner=counterpart; miDetails; assessment
+   
+    choice Reject : ()
+      controller counterpart
+        do
+          return()
 
 
-template MIresultArbitrators
+template MIresultArbitration
   with 
     tenant : Party
     host : Party
@@ -148,10 +163,9 @@ template MIresultArbitrators
     visitDetails : Text
     assessment : AssessmentDetails 
   where 
-    signatory arbitrators
-    observer tenant, host
+    signatory arbitrators, tenant, host
 
-template MIresultFriendly
+template MIresultAmicable
   with 
     assessmentCreator : Party
     assessmentSigner : Party
@@ -171,7 +185,7 @@ template AvailableArbitratorsRequest
     observer public
 
 
-template AvailableArbitrators
+template AvailableArbitrators -- anyone can create this with him as an operator
   with 
     operator : Party
     arbitrators : Parties

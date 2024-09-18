@@ -27,20 +27,18 @@ public class TimeProvider {
     
     try{
       LedgerCommunication ledger = new LedgerCommunication(ledgerhost, ledgerApiPort, timeProviderParty, lifecyclerParty);
-    
 
-      ledger.getCurrentState();
+      ledger.getCurrentState(); // passar para dentro do construtor
       ledger.probeDateClocks();
       ledger.probeEvolve();
-  
   
       while (true) {
           System.in.read(); 
           ledger.advanceClock();
       } 
-    }catch (Exception e){
-      e.printStackTrace();
-    } 
+      }catch (Exception e){
+        e.printStackTrace();
+      } 
 
   }
 

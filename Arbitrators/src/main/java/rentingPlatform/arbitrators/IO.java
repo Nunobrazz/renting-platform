@@ -9,11 +9,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.google.common.collect.BiMap;
 
 import rentingPlatform.codegen.platform.types.mi.MIdetails;
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.InviteArbitrators;
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.MIReport;
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.Poll;
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.CreatePoll;
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.Vote;
+import rentingPlatform.codegen.platform.modelmi.InviteArbitrators;
+import rentingPlatform.codegen.platform.modelmi.MIReport;
+import rentingPlatform.codegen.platform.modelmi.Poll;
+import rentingPlatform.codegen.platform.modelmi.CreatePoll;
+import rentingPlatform.codegen.platform.modelmi.Vote;
 import rentingPlatform.codegen.platform.types.mi.Responsability;
 
 
@@ -63,21 +63,28 @@ public class IO {
   }
   private CreatePoll askCreatePoll(String individualParty){ // handle parsing exceptions
     System.out.printf("Visit details: ");
-    String visitDetails = sc.next();
+    String visitDetails = sc.nextLine();
     System.out.printf("Reparation Cost: ");
     long cost = sc.nextLong();
+    sc.nextLine(); 
+
     System.out.printf("Date of assessment: ");    
     String dateString = sc.next();
+    sc.nextLine(); 
+
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     LocalDate assessmentDate = LocalDate.parse(dateString, formatter);
     System.out.printf("Date of reparation: ");
     dateString = sc.next();
+
     formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     LocalDate reparationDate = LocalDate.parse(dateString, formatter);
     System.out.printf("Tenant's Responsability: ");
     Long tenantResp = sc.nextLong();
+
     System.out.printf("Hosts's Responsability: ");
     Long hostResp = sc.nextLong();
+
     Responsability responsability = new Responsability(tenantResp, hostResp);
     return new CreatePoll(individualParty, visitDetails, responsability, cost, assessmentDate, reparationDate);
   }
@@ -99,6 +106,8 @@ public class IO {
       System.out.printf("3. List Polls\n");
       System.out.printf("> Select Option: "); 
       int option = sc.nextInt();
+      sc.nextLine();
+
       switch (option) {
         case 1:
           while (true){
@@ -146,6 +155,7 @@ public class IO {
               });
               System.out.printf("> Choose MIReport ID to Create Poll: "); 
               long miReportId = sc.nextLong();
+              sc.nextLine();
               if (mis.containsKey(miReportId)){
                 System.out.printf("Selected:\n"); 
                 displayMIReport(mis.get(miReportId)); 
@@ -191,7 +201,5 @@ public class IO {
       }
     }
   }
-
-
-
 }
+

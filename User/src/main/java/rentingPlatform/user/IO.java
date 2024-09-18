@@ -4,10 +4,10 @@ package rentingPlatform.user;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.AvailableArbitrators;
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.InviteArbitrators;
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.MIReport;
-import rentingPlatform.codegen.platform.leaseagreement.service.Service;
+import rentingPlatform.codegen.platform.modelmi.AvailableArbitrators;
+//import rentingPlatform.codegen.platform.modelmi.InviteArbitrators;
+import rentingPlatform.codegen.platform.modelmi.MIReport;
+import rentingPlatform.codegen.platform.modella.LeaseAgreement;
 import rentingPlatform.codegen.platform.types.mi.MIdetails;
 import rentingPlatform.codegen.time.lifecycle.iou.Iou;
 
@@ -34,7 +34,7 @@ public class IO {
       });
     }
   }
-  private void displayLAdetails(long serviceId, Service service) {
+  private void displayLAdetails(long serviceId, LeaseAgreement service) {
     System.out.printf("ID: %d\n", serviceId);
     System.out.printf("   Tenant: %s\n", service.laKey.tenant.toString() );
     System.out.printf("   Host: %s\n", service.laKey.house.host.toString() );
@@ -66,7 +66,7 @@ public class IO {
           break;
         case 3:
           while (true){ 
-            ConcurrentHashMap<Long, Service> services = ledger.getLAServices();
+            ConcurrentHashMap<Long, LeaseAgreement> services = ledger.getLAs();
             if (services.isEmpty()){
               System.out.println("\nNo available Lease Agreements.\n");
               break;
@@ -175,8 +175,8 @@ public class IO {
 
 
     public void displayAllStoredContracts(LedgerCommunication ledger){
-      System.out.println("\n----------- SERVICES---------------------");
-      ConcurrentHashMap<Long, Service> services = ledger.getLAServices();
+      System.out.println("\n----------- LEASE AGREEMENTS ---------------------");
+      ConcurrentHashMap<Long, LeaseAgreement> services = ledger.getLAs();
       if (services.isEmpty())
         System.out.println("No LA services.");
       else{
@@ -195,7 +195,7 @@ public class IO {
         });
       }
       
-      System.out.println("\n----------- INVITE ARBITRATORS ---------------------");
+      /*System.out.println("\n----------- INVITE ARBITRATORS ---------------------");
       ConcurrentHashMap<Long, InviteArbitrators> invites = ledger.getInviteArbitrators();
       if (invites.isEmpty())
         System.out.println("No Arbitrators Invitation Contracts.");
@@ -211,8 +211,8 @@ public class IO {
             });
           }
         });
-      }
-      System.out.println("\n----------- AVAILABLE ARBITRATORS ---------------------");
+      }*///
+      System.out.println("\n----------- AVAILABLE ARBITRATORS IN THE PLATFORM ---------------------");
       AvailableArbitrators.Contract availableArbitrators = ledger.getAvailableArbitrators();
       if (availableArbitrators == null)
         System.out.println("No Available Arbitrators Contract.");

@@ -6,8 +6,9 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.ConcurrentHashMap;
 import com.google.common.collect.BiMap;
 
-import rentingPlatform.codegen.platform.leaseagreement.modelmi.InviteArbitrators;
+import rentingPlatform.codegen.platform.modelmi.InviteArbitrators;
 
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Arbitrator {
@@ -36,8 +37,9 @@ public class Arbitrator {
     try{
       ledger = new LedgerCommunication(ledgerhost, ledgerApiPort, individualParty);
       io.displayMainMenu(ledger);
-    }catch(Exception e){
-      e.printStackTrace();
+    }catch(InputMismatchException e){
+      System.err.println("Error parsing input, going back to Main Menu");
+      //io.displayMainMenu(ledger);
     }
   }
 
