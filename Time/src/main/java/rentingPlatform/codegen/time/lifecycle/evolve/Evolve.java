@@ -45,27 +45,27 @@ import rentingPlatform.codegen.platform.types.la.LAkey;
 import rentingPlatform.codegen.time.clock.DateClockUpdateEvent;
 
 public final class Evolve extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("bef0965dc38d518ab3f749ea7cce7cf9cd13acb7b593b5f936707edcb2f1eff5", "Time.Lifecycle.Evolve", "Evolve");
+  public static final Identifier TEMPLATE_ID = new Identifier("6ca065ed990f710397d5bb273336a4eef438fdaf5c0d5e62b6e4e42cb9aa2b70", "Time.Lifecycle.Evolve", "Evolve");
 
   public static final Choice<Evolve, AddLA, ContractId> CHOICE_AddLA = 
       Choice.create("AddLA", value$ -> value$.toValue(), value$ -> AddLA.valueDecoder()
         .decode(value$), value$ ->
         new ContractId(value$.asContractId().orElseThrow(() -> new IllegalArgumentException("Expected value$ to be of type com.daml.ledger.javaapi.data.ContractId")).getValue()));
 
-  public static final Choice<Evolve, ProcessEvent, Unit> CHOICE_ProcessEvent = 
-      Choice.create("ProcessEvent", value$ -> value$.toValue(), value$ ->
-        ProcessEvent.valueDecoder().decode(value$), value$ -> PrimitiveValueDecoders.fromUnit
-        .decode(value$));
-
   public static final Choice<Evolve, rentingPlatform.codegen.da.internal.template.Archive, Unit> CHOICE_Archive = 
       Choice.create("Archive", value$ -> value$.toValue(), value$ ->
         rentingPlatform.codegen.da.internal.template.Archive.valueDecoder().decode(value$),
         value$ -> PrimitiveValueDecoders.fromUnit.decode(value$));
 
+  public static final Choice<Evolve, ProcessEvent, Unit> CHOICE_ProcessEvent = 
+      Choice.create("ProcessEvent", value$ -> value$.toValue(), value$ ->
+        ProcessEvent.valueDecoder().decode(value$), value$ -> PrimitiveValueDecoders.fromUnit
+        .decode(value$));
+
   public static final ContractCompanion.WithKey<Contract, ContractId, Evolve, Tuple2<String, String>> COMPANION = 
       new ContractCompanion.WithKey<>("rentingPlatform.codegen.time.lifecycle.evolve.Evolve",
         TEMPLATE_ID, ContractId::new, v -> Evolve.templateValueDecoder().decode(v),
-        Evolve::fromJson, Contract::new, List.of(CHOICE_AddLA, CHOICE_ProcessEvent, CHOICE_Archive),
+        Evolve::fromJson, Contract::new, List.of(CHOICE_AddLA, CHOICE_Archive, CHOICE_ProcessEvent),
         e -> Tuple2.<java.lang.String,
         java.lang.String>valueDecoder(PrimitiveValueDecoders.fromParty,
         PrimitiveValueDecoders.fromText).decode(e));
@@ -109,6 +109,23 @@ public final class Evolve extends Template {
   }
 
   /**
+   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseArchive} instead
+   */
+  @Deprecated
+  public static Update<Exercised<Unit>> exerciseByKeyArchive(Tuple2<String, String> key,
+      rentingPlatform.codegen.da.internal.template.Archive arg) {
+    return byKey(key).exerciseArchive(arg);
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseArchive()} instead
+   */
+  @Deprecated
+  public static Update<Exercised<Unit>> exerciseByKeyArchive(Tuple2<String, String> key) {
+    return byKey(key).exerciseArchive();
+  }
+
+  /**
    * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseProcessEvent} instead
    */
   @Deprecated
@@ -124,23 +141,6 @@ public final class Evolve extends Template {
   public static Update<Exercised<Unit>> exerciseByKeyProcessEvent(Tuple2<String, String> key,
       DateClockUpdateEvent.ContractId eventCid) {
     return byKey(key).exerciseProcessEvent(eventCid);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseArchive} instead
-   */
-  @Deprecated
-  public static Update<Exercised<Unit>> exerciseByKeyArchive(Tuple2<String, String> key,
-      rentingPlatform.codegen.da.internal.template.Archive arg) {
-    return byKey(key).exerciseArchive(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code byKey(key).exerciseArchive()} instead
-   */
-  @Deprecated
-  public static Update<Exercised<Unit>> exerciseByKeyArchive(Tuple2<String, String> key) {
-    return byKey(key).exerciseArchive();
   }
 
   /**
@@ -160,23 +160,6 @@ public final class Evolve extends Template {
   }
 
   /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseProcessEvent} instead
-   */
-  @Deprecated
-  public Update<Exercised<Unit>> createAndExerciseProcessEvent(ProcessEvent arg) {
-    return createAnd().exerciseProcessEvent(arg);
-  }
-
-  /**
-   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseProcessEvent} instead
-   */
-  @Deprecated
-  public Update<Exercised<Unit>> createAndExerciseProcessEvent(
-      DateClockUpdateEvent.ContractId eventCid) {
-    return createAndExerciseProcessEvent(new ProcessEvent(eventCid));
-  }
-
-  /**
    * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseArchive} instead
    */
   @Deprecated
@@ -191,6 +174,23 @@ public final class Evolve extends Template {
   @Deprecated
   public Update<Exercised<Unit>> createAndExerciseArchive() {
     return createAndExerciseArchive(new rentingPlatform.codegen.da.internal.template.Archive());
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseProcessEvent} instead
+   */
+  @Deprecated
+  public Update<Exercised<Unit>> createAndExerciseProcessEvent(ProcessEvent arg) {
+    return createAnd().exerciseProcessEvent(arg);
+  }
+
+  /**
+   * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseProcessEvent} instead
+   */
+  @Deprecated
+  public Update<Exercised<Unit>> createAndExerciseProcessEvent(
+      DateClockUpdateEvent.ContractId eventCid) {
+    return createAndExerciseProcessEvent(new ProcessEvent(eventCid));
   }
 
   public static Update<Created<ContractId>> create(String operator, String lifecycler,
@@ -360,14 +360,6 @@ public final class Evolve extends Template {
       return exerciseAddLA(new AddLA(laKey));
     }
 
-    default Update<Exercised<Unit>> exerciseProcessEvent(ProcessEvent arg) {
-      return makeExerciseCmd(CHOICE_ProcessEvent, arg);
-    }
-
-    default Update<Exercised<Unit>> exerciseProcessEvent(DateClockUpdateEvent.ContractId eventCid) {
-      return exerciseProcessEvent(new ProcessEvent(eventCid));
-    }
-
     default Update<Exercised<Unit>> exerciseArchive(
         rentingPlatform.codegen.da.internal.template.Archive arg) {
       return makeExerciseCmd(CHOICE_Archive, arg);
@@ -375,6 +367,14 @@ public final class Evolve extends Template {
 
     default Update<Exercised<Unit>> exerciseArchive() {
       return exerciseArchive(new rentingPlatform.codegen.da.internal.template.Archive());
+    }
+
+    default Update<Exercised<Unit>> exerciseProcessEvent(ProcessEvent arg) {
+      return makeExerciseCmd(CHOICE_ProcessEvent, arg);
+    }
+
+    default Update<Exercised<Unit>> exerciseProcessEvent(DateClockUpdateEvent.ContractId eventCid) {
+      return exerciseProcessEvent(new ProcessEvent(eventCid));
     }
   }
 

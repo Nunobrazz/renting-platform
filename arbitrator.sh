@@ -1,7 +1,7 @@
 #!/bin/bash 
 
 cd Arbitrators;
-mvn clean install compile;
+#mvn clean install compile;
 
 if [ $1 -eq 2 ] 
 then 

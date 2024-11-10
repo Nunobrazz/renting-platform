@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
 import static java.util.UUID.randomUUID;
-import static rentingPlatform.time.TimeProvider.debug;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -52,33 +51,45 @@ public class LedgerCommunication {
 
     // Connects to the ledger and runs initial validation.
     client.connect();
-    debug("Connceted to: {}", client.getLedgerId());
 
+    getCurrentState();
+    probeDateClocks();
+    probeEvolve();
   }
 
-  public void getCurrentState() {
-    dateClock = client
+  private void getCurrentState() {
+    client
         .getActiveContractSetClient()
         .getActiveContracts(DateClock.contractFilter(), Collections.singleton(timeProviderParty), true)
-        .blockingFirst()
-        .activeContracts
-        .get(0);
+        .blockingForEach(
+          response -> {
+            response.offset.ifPresent(offset -> acsOffset.set(new LedgerOffset.Absolute(offset)));
+            response.activeContracts.forEach(
+                contract -> {
+                  this.dateClock = contract;
+                });
+          });
     
     System.out.printf("Current Date: %s\n", dateClock.data.clockDate.toString());
 
-    evolve = client
+    client
         .getActiveContractSetClient()
         .getActiveContracts(Evolve.contractFilter(), Collections.singleton(lifecyclerParty), true)
-        .blockingFirst()
-        .activeContracts
-        .get(0);
+        .blockingForEach(
+          response -> {
+            response.offset.ifPresent(offset -> acsOffset.set(new LedgerOffset.Absolute(offset)));
+            response.activeContracts.forEach(
+                contract -> {
+                  this.evolve = contract;
+                });
+          });
     
-    System.out.printf("Current Evolve Cid: %s\n", evolve.id.toString());
+    //System.out.printf("Current Evolve Cid: %s\n", evolve.id.toString());
 
   }
   
 
-  public void probeDateClocks(){ // Probe because other party can update too
+  private void probeDateClocks(){ // Probe because other party can update too
       
       client
             .getTransactionsClient()
@@ -97,7 +108,7 @@ public class LedgerCommunication {
     }
 
 
-  public void probeEvolve() {
+  private void probeEvolve() {
     
     client
             .getTransactionsClient()
@@ -109,7 +120,7 @@ public class LedgerCommunication {
                     if (event instanceof CreatedEvent) {
                       CreatedEvent createdEvent = (CreatedEvent) event;
                       evolve = Evolve.Contract.fromCreatedEvent(createdEvent);
-                      System.out.printf("\nNew LA added to Evolve contract.\n");
+                      //System.out.printf("\nNew LA added to Evolve contract.\n");
                     } 
                   }
                 });
@@ -118,11 +129,6 @@ public class LedgerCommunication {
   // everyday advance clock by 1 day and probes better to create a thread that always probes updates to evolve
   public void advanceClock() {
 
-    System.out.printf("First in providers: %s\n",dateClock.data.providers.get(0));
-    System.out.printf("timeProviderParty: %s\n", timeProviderParty);
-    System.out.printf("length First in providers: %s\n",dateClock.data.providers.get(0).length());
-    System.out.printf("length timeProviderParty: %s\n", timeProviderParty.length());
-    System.out.printf("Verification is: %b\n", timeProviderParty.equals(dateClock.data.providers.get(0)));
 
     //if (dateClock.data.providers.get(0).equals(timeProviderParty)) { // should i keep this if or print exception
       
@@ -130,10 +136,6 @@ public class LedgerCommunication {
             
       var update = dateClock.id.exerciseAdvance(timeProviderParty);
       var result = submit(client, timeProviderParty, update);    // NewClock and DateClockEvent
-      
-
-      System.out.printf("\nEvolve Cid: %s\n", evolve.id.toString());
-      System.out.printf("\nresult.exerciseResult: %s\n", result.exerciseResult);
       
       DateClockUpdateEvent.ContractId updatedClockcid = result.exerciseResult;
 

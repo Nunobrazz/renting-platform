@@ -1,10 +1,10 @@
 module Platform.Proposal where
 
-import Platform.Types.Common as Types (House, LeaseTerms) 
 import Platform.Types.LA
+import Platform.Types.Common
 import Platform.ModelLA
 import Time.Lifecycle.Evolve
-
+import DA.List as L
 
 
 template Proposal 
@@ -54,12 +54,15 @@ template LACreationRequest
     choice Approve : ContractId LeaseAgreement -- could do a service without automatic payments.
       with 
         evolveId : Text
+        laId : Int
       controller operator      -- operator approves
       do
-        let laKey=LAkey with tenant, house
+        let laKey=LAkey with tenant, house,id=laId
         (_, Evolve{lifecycler}) <- fetchByKey (operator, evolveId)
 
         exerciseByKey @Evolve (operator, evolveId) AddLA with laKey -- necessary operator
+        -- sort payment dates
+        let sortedleaseTerms = LeaseTerms with agreedRent=leaseTerms.agreedRent; beginingDate=leaseTerms.beginingDate; paymentDates= L.sort leaseTerms.paymentDates; nArbitrators=leaseTerms.nArbitrators
         create LeaseAgreement with operator; lifecycler; tenant;laKey; house; leaseTerms; paymentsToProcess=leaseTerms.paymentDates
 
 

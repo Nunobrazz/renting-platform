@@ -32,7 +32,7 @@ template Evolve
     nonconsuming choice ProcessEvent : ()
       with 
         eventCid : ContractId DateClockUpdateEvent
-      controller lifecycler, operator
+      controller lifecycler
       do 
 
         forA_ laKeys (\laKey ->

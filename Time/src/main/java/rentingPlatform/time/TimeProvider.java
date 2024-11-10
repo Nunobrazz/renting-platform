@@ -1,12 +1,9 @@
 package rentingPlatform.time;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 
 public class TimeProvider {
-  
-  private static final Logger logger = LoggerFactory.getLogger(TimeProvider.class);
   
 
   
@@ -22,28 +19,23 @@ public class TimeProvider {
     String timeProviderParty = args[2];
     String lifecyclerParty = args[3];
     
-    debug("Runing as party: {}", timeProviderParty);
-    debug("Runing as party: {}", lifecyclerParty);
-    
+
     try{
       LedgerCommunication ledger = new LedgerCommunication(ledgerhost, ledgerApiPort, timeProviderParty, lifecyclerParty);
 
-      ledger.getCurrentState(); // passar para dentro do construtor
-      ledger.probeDateClocks();
-      ledger.probeEvolve();
-  
       while (true) {
-          System.in.read(); 
-          ledger.advanceClock();
+        System.in.read(); 
+        //long start = System.nanoTime();
+        ledger.advanceClock();
+        //double latency = (double) (System.nanoTime() - start)/1_000_000_000;
+        //System.out.println("\n\n\n\nlatency: " + latency);
       } 
+
       }catch (Exception e){
         e.printStackTrace();
       } 
 
   }
 
-  public static void debug(String s1 , Object  s2) {
-    logger.info(s1,s2);
-  }
 
 }

@@ -2,7 +2,6 @@ package rentingPlatform.codegen.platform.proposal;
 
 import static com.daml.ledger.javaapi.data.codegen.json.JsonLfEncoders.apply;
 
-import com.daml.ledger.javaapi.data.Party;
 import com.daml.ledger.javaapi.data.Value;
 import com.daml.ledger.javaapi.data.codegen.DamlRecord;
 import com.daml.ledger.javaapi.data.codegen.PrimitiveValueDecoders;
@@ -23,12 +22,9 @@ import java.util.List;
 import java.util.Objects;
 
 public class Accept extends DamlRecord<Accept> {
-  public static final String _packageId = "bef0965dc38d518ab3f749ea7cce7cf9cd13acb7b593b5f936707edcb2f1eff5";
+  public static final String _packageId = "6ca065ed990f710397d5bb273336a4eef438fdaf5c0d5e62b6e4e42cb9aa2b70";
 
-  public final String operator;
-
-  public Accept(String operator) {
-    this.operator = operator;
+  public Accept() {
   }
 
   /**
@@ -42,27 +38,24 @@ public class Accept extends DamlRecord<Accept> {
   public static ValueDecoder<Accept> valueDecoder() throws IllegalArgumentException {
     return value$ -> {
       Value recordValue$ = value$;
-      List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(1,0,
+      List<com.daml.ledger.javaapi.data.DamlRecord.Field> fields$ = PrimitiveValueDecoders.recordCheck(0,0,
           recordValue$);
-      String operator = PrimitiveValueDecoders.fromParty.decode(fields$.get(0).getValue());
-      return new Accept(operator);
+      return new Accept();
     } ;
   }
 
   public com.daml.ledger.javaapi.data.DamlRecord toValue() {
-    ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field> fields = new ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field>(1);
-    fields.add(new com.daml.ledger.javaapi.data.DamlRecord.Field("operator", new Party(this.operator)));
+    ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field> fields = new ArrayList<com.daml.ledger.javaapi.data.DamlRecord.Field>(0);
     return new com.daml.ledger.javaapi.data.DamlRecord(fields);
   }
 
   public static JsonLfDecoder<Accept> jsonDecoder() {
-    return JsonLfDecoders.record(Arrays.asList("operator"), name -> {
+    return JsonLfDecoders.record(Arrays.asList(), name -> {
           switch (name) {
-            case "operator": return com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.JavaArg.at(0, com.daml.ledger.javaapi.data.codegen.json.JsonLfDecoders.party);
             default: return null;
           }
         }
-        , (Object[] args) -> new Accept(JsonLfDecoders.cast(args[0])));
+        , (Object[] args) -> new Accept());
   }
 
   public static Accept fromJson(String json) throws JsonLfDecoder.Error {
@@ -70,8 +63,7 @@ public class Accept extends DamlRecord<Accept> {
   }
 
   public JsonLfEncoder jsonEncoder() {
-    return JsonLfEncoders.record(
-        JsonLfEncoders.Field.of("operator", apply(JsonLfEncoders::party, operator)));
+    return JsonLfEncoders.record();
   }
 
   @Override
@@ -85,17 +77,16 @@ public class Accept extends DamlRecord<Accept> {
     if (!(object instanceof Accept)) {
       return false;
     }
-    Accept other = (Accept) object;
-    return Objects.equals(this.operator, other.operator);
+    return true;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.operator);
+    return Objects.hash();
   }
 
   @Override
   public String toString() {
-    return String.format("rentingPlatform.codegen.platform.proposal.Accept(%s)", this.operator);
+    return "rentingPlatform.codegen.platform.proposal.Accept";
   }
 }

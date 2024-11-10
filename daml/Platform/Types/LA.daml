@@ -9,5 +9,6 @@ data LAkey = LAkey
   with
     tenant : Party
     house : House
+    id : Int
   deriving (Eq, Ord, Show)
 

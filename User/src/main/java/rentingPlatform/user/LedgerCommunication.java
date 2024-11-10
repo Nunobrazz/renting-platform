@@ -67,6 +67,7 @@ public class LedgerCommunication {
 
       getLAsCurrentState();
       getMIReportsCurrentState();
+      probeLAs();
       probeMIReports();
       getAvailableArbitratorsCurrentState();
       getInviteArbitratorsCurrentState();
@@ -150,6 +151,30 @@ public class LedgerCommunication {
                 });
           });
     }
+    private void probeLAs(){
+      client
+            .getTransactionsClient()
+            .getTransactions(  
+                LeaseAgreement.contractFilter(), acsOffset.get(), Collections.singleton(individualParty), true)
+            .forEach(
+              t -> {
+                for (Event event : t.getEvents()) {
+                  if (event instanceof CreatedEvent) {
+                    CreatedEvent createdEvent = (CreatedEvent) event;
+                    long id = miReportsIdCounter.getAndIncrement();
+                    LeaseAgreement.Contract contract = LeaseAgreement.Contract.fromCreatedEvent(createdEvent);
+                    las.put(id, contract.data);
+                    lasCids.put(id, contract.id);
+                  } else if (event instanceof ArchivedEvent) {
+                    ArchivedEvent archivedEvent = (ArchivedEvent) event; 
+                    LeaseAgreement.ContractId archivedCid = new LeaseAgreement.ContractId(archivedEvent.getContractId());
+                    long id = lasCids.inverse().get(archivedCid); 
+                    miReports.remove(id);
+                    lasCids.remove(id);
+                  }
+                }
+              });
+    }
     private void probeMIReports(){
       client
             .getTransactionsClient()
@@ -164,14 +189,13 @@ public class LedgerCommunication {
                     MIReport.Contract contract = MIReport.Contract.fromCreatedEvent(createdEvent);
                     miReports.put(id, contract.data);
                     miReportCids.put(id, contract.id);
-                    System.out.printf("Created MI id: %d\n", id);
+                    //System.out.printf("Created MI id: %d\n", id);
                   } else if (event instanceof ArchivedEvent) {
                     ArchivedEvent archivedEvent = (ArchivedEvent) event; 
                     MIReport.ContractId archivedCid = new MIReport.ContractId(archivedEvent.getContractId());
                     long id = miReportCids.inverse().get(archivedCid); 
                     miReports.remove(id);
                     miReportCids.remove(id);
-                    System.out.printf("Archived MI id: %d\n", id);
                   }
                 }
               });
@@ -196,25 +220,32 @@ public class LedgerCommunication {
                 });
     }
 
-    private void probeInviteArbitrators(){      
-      client
-            .getTransactionsClient()
-            .getTransactions(  
-              InviteArbitrators.contractFilter(), acsOffset.get(), Collections.singleton(individualParty), true)
-            .forEach(
-              t -> {
-                for (Event event : t.getEvents()) {
+    private void probeInviteArbitrators(){ 
+        client
+        .getTransactionsClient()
+        .getTransactions(  
+          InviteArbitrators.contractFilter(), acsOffset.get(), Collections.singleton(individualParty), true)
+        .subscribe(
+          transaction -> {
+              for (Event event : transaction.getEvents()) {
                   if (event instanceof CreatedEvent) {
-                    CreatedEvent createdEvent = (CreatedEvent) event;
-                    InviteArbitrators.Contract contract = InviteArbitrators.Contract.fromCreatedEvent(createdEvent);
-                    if (contract.data.confirmed.map.size() == contract.data.miDetails.nArbitrators){
-                      var confirmAttributionUpdate = contract.id.exerciseConfirmAttribution(individualParty);
-                      submit(client, individualParty, confirmAttributionUpdate);
-                      System.out.println("Invitation Finalized.");
-                    }
-                  } 
-                }
-              });
+                      CreatedEvent createdEvent = (CreatedEvent) event;
+                      InviteArbitrators.Contract contract = InviteArbitrators.Contract.fromCreatedEvent(createdEvent);
+  
+                      if (contract.data.confirmed.map.size() == contract.data.miDetails.nArbitrators) {
+                          var confirmAttributionUpdate = contract.id.exerciseConfirmAttribution(individualParty);
+                          submit(client, individualParty, confirmAttributionUpdate);
+                          System.out.println("Invitation Finalized.");
+                      }
+                  }
+              }
+          },
+          throwable -> {
+              // Handle any errors during subscription
+              //System.err.println("Error processing transaction:");
+          });
+        
+    
     }
     
     private void probeAvailableArbitrators(){ // public party

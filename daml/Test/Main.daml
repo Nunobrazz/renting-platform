@@ -1,17 +1,44 @@
 module Test.Main where
 
 import qualified DA.Set as S
-import qualified DA.List as L
+import DA.Date
+import DA.Foldable (forA_)
 
 import Test.LAcreation 
 import Daml.Script
 import Platform.Types.LA 
-import Platform.Service
 import Platform.ModelMI
 import Platform.ModelLA
 import Test.Roles
-import Time.Clock
-import Time.Lifecycle.Evolve
+
+import Platform.Types.Common
+
+createLAReplics : Int -> Parties -> House -> LeaseTerms -> Script ()
+createLAReplics number parties house leaseTerms =  do
+  forA_ (enumFromTo 2 number) (\id ->
+    do
+      laCreation parties house leaseTerms id
+    )
+
+createLAReplics50 : Int -> Parties -> House -> LeaseTerms -> Date -> Script ()
+createLAReplics50 number parties house leaseTerms yesterday =  do
+  forA_ (enumFromTo 2 (number)) (\id ->
+    do
+      if (id%2==0) then do
+        let newLeaseTerms = LeaseTerms with agreedRent=leaseTerms.agreedRent; beginingDate=leaseTerms.beginingDate; paymentDates=yesterday::leaseTerms.paymentDates; nArbitrators=leaseTerms.nArbitrators
+        laCreation parties house newLeaseTerms id
+      else 
+        laCreation parties house leaseTerms id
+    )
+
+
+createLAReplics100 : Int -> Parties -> House -> LeaseTerms -> Date -> Script ()
+createLAReplics100 number parties house leaseTerms yesterday =  do
+  forA_ (enumFromTo 2 (number)) (\id ->
+    do
+      let newLeaseTerms = LeaseTerms with agreedRent=leaseTerms.agreedRent; beginingDate=leaseTerms.beginingDate; paymentDates=yesterday::leaseTerms.paymentDates; nArbitrators=leaseTerms.nArbitrators
+      laCreation parties house newLeaseTerms id      
+    )
 
 
 initialize : Script Parties
@@ -19,9 +46,16 @@ initialize = do
 
   --passTime (days 19894)
 
-  (parties, laCid, house, _, today) <- laCreation
+  (parties, house, leaseTerms, today) <- init
+
+
+  laCid <- laCreation parties house leaseTerms 1
+  --createLAReplics 1 parties house leaseTerms
+  --createLAReplics50 1000 parties house leaseTerms (subtractDays today 1)
+  --createLAReplics100 1000 parties house leaseTerms (subtractDays today 1)
+
   let 
-      laKey = LAkey with tenant = parties.bob; house 
+      laKey = LAkey with tenant = parties.bob; house; id=1
 
   availableArbitratorsCid <- submit parties.operator do
     createCmd AvailableArbitrators with operator=parties.operator; arbitrators= S.fromList [parties.arbitrator1, parties.arbitrator2, parties.arbitrator3]; observers = S.fromList [parties.public]

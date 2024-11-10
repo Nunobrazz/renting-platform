@@ -11,6 +11,7 @@ import Platform.Types.MI
 import Platform.ModelMI
 import Platform.Util
 
+
 template LeaseAgreement
   with
     operator: Party
@@ -24,7 +25,7 @@ template LeaseAgreement
     signatory operator, tenant, house.host   
     observer lifecycler
     ensure (not (leaseTerms.paymentDates /= [] && leaseTerms.beginingDate >= head leaseTerms.paymentDates)) && leaseTerms.nArbitrators > 0
-    key laKey : (LAkey) --LAkey with tenant, house : (LAkey)
+    key laKey : (LAkey) -- LAkey with tenant, house 
     maintainer key.tenant, key.house.host
 
 
@@ -48,7 +49,8 @@ template LeaseAgreement
         else do 
           pure self
 
-      ---- BEGIN ---- MAINTENANCE ISSUES
+
+    ---- BEGIN ---- MAINTENANCE ISSUES
     nonconsuming choice CreateMI : ContractId MIReport
       with 
         reporter : Party

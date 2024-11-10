@@ -50,6 +50,7 @@ template DateClock
           advancer : Party
         controller advancer
         do
+          assertMsg "This party is not allowd to advance time." (S.member advancer providers) 
           now <- getTime 
           let nowDate = toDateUTC now
               offset = subDate nowDate clockDate

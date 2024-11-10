@@ -1,7 +1,7 @@
 #!/bin/bash 
 
 cd User;
-mvn clean install compile;
+#mvn clean install compile;
 
 if [ $1 -eq 1 ] 
 then 

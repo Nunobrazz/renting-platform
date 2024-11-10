@@ -13,7 +13,7 @@ template MIReport
     laKey : LAkey
     miDetails: MIdetails 
     arbitrators : Parties
-    activeInvitation : Bool
+    activeInvitation : Bool 
   where
     signatory tenant, host 
     observer arbitrators
@@ -76,7 +76,7 @@ template InviteArbitrators     -- arbitrators recieve notifications when others 
       do 
         assertMsg "The expected number of arbitrators has not been reached." (S.size confirmed == miDetails.nArbitrators)
 
-    nonconsuming choice ConfirmAttribution : ContractId MIReport
+    nonconsuming choice ConfirmAttribution : ContractId MIReport -- has to be nonconsuming !! check SetArbitrators
       with 
         inviter : Party
       controller inviter

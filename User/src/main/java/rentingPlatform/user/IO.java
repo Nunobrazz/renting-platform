@@ -1,6 +1,8 @@
 package rentingPlatform.user;
 
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -35,10 +37,16 @@ public class IO {
     }
   }
   private void displayLAdetails(long serviceId, LeaseAgreement service) {
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        
     System.out.printf("ID: %d\n", serviceId);
     System.out.printf("   Tenant: %s\n", service.laKey.tenant.toString() );
     System.out.printf("   Host: %s\n", service.laKey.house.host.toString() );
     System.out.printf("   Address: %s\n", service.laKey.house.address.toString() );
+    System.out.printf("   Payment to Process:\n");
+    for (LocalDate payment : service.paymentsToProcess){
+      System.out.printf("       %s%n\n", payment.format(formatter));
+    }
   }
   public void displayIouDetails(Iou iou) {
     System.out.println("\n----------- NEW IOU CREATED ---------------------");

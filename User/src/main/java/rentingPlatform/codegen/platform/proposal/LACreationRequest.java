@@ -28,6 +28,7 @@ import com.daml.ledger.javaapi.data.codegen.json.JsonLfEncoders;
 import com.daml.ledger.javaapi.data.codegen.json.JsonLfReader;
 import java.lang.Deprecated;
 import java.lang.IllegalArgumentException;
+import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
@@ -42,7 +43,7 @@ import rentingPlatform.codegen.platform.types.common.House;
 import rentingPlatform.codegen.platform.types.common.LeaseTerms;
 
 public final class LACreationRequest extends Template {
-  public static final Identifier TEMPLATE_ID = new Identifier("bef0965dc38d518ab3f749ea7cce7cf9cd13acb7b593b5f936707edcb2f1eff5", "Platform.Proposal", "LACreationRequest");
+  public static final Identifier TEMPLATE_ID = new Identifier("6ca065ed990f710397d5bb273336a4eef438fdaf5c0d5e62b6e4e42cb9aa2b70", "Platform.Proposal", "LACreationRequest");
 
   public static final Choice<LACreationRequest, Reject, Unit> CHOICE_Reject = 
       Choice.create("Reject", value$ -> value$.toValue(), value$ -> Reject.valueDecoder()
@@ -129,8 +130,9 @@ public final class LACreationRequest extends Template {
    * @deprecated since Daml 2.3.0; use {@code createAnd().exerciseApprove} instead
    */
   @Deprecated
-  public Update<Exercised<LeaseAgreement.ContractId>> createAndExerciseApprove(String evolveId) {
-    return createAndExerciseApprove(new Approve(evolveId));
+  public Update<Exercised<LeaseAgreement.ContractId>> createAndExerciseApprove(String evolveId,
+      Long laId) {
+    return createAndExerciseApprove(new Approve(evolveId, laId));
   }
 
   public static Update<Created<ContractId>> create(String operator, String tenant, House house,
@@ -299,8 +301,9 @@ public final class LACreationRequest extends Template {
       return makeExerciseCmd(CHOICE_Approve, arg);
     }
 
-    default Update<Exercised<LeaseAgreement.ContractId>> exerciseApprove(String evolveId) {
-      return exerciseApprove(new Approve(evolveId));
+    default Update<Exercised<LeaseAgreement.ContractId>> exerciseApprove(String evolveId,
+        Long laId) {
+      return exerciseApprove(new Approve(evolveId, laId));
     }
   }
 
